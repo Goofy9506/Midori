@@ -1,0 +1,321 @@
+.player-container {
+  top: 0;
+  left: 0;
+  z-index: 101;
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  max-width: 100%;
+  max-height: 100%;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  background-color: #000;
+
+  #midori-player {
+    width: 100%;
+    height: 100%;
+    z-index: 101;
+
+    &::cue {
+      opacity: 1;
+      font-size: 42px;
+      margin-bottom: 40px;
+      background-color: transparent;
+      -webkit-text-stroke: 3px black;
+    }
+
+    &::-webkit-media-text-track-container {
+      font-weight: 700;
+      position: absolute;
+      overflow: visible !important;
+      font-family: "Poppins", sans-serif;
+      -webkit-text-stroke: 1.5px black;
+      -webkit-transform: translateY(-1%) !important;
+    }
+  }
+
+  .exit {
+    left: 1.5%;
+    display: flex;
+    position: absolute;
+    flex-direction: row;
+
+    svg {
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    div {
+      font-size: 20px;
+      margin-top: 20px;
+      text-align: left !important;
+
+      p {
+        font-size: 16px;
+        color: var(--font-color-3);
+      }
+    }
+  }
+
+  .controls {
+    opacity: 0;
+    z-index: 101;
+    width: 100%;
+    cursor: none;
+    height: 100%;
+    font-size: 70px;
+    position: absolute;
+    color: var(--font-color-1);
+    transition: 0.2s ease-in-out;
+
+    &.showed {
+      opacity: 100;
+      cursor: default;
+    }
+
+    .mid-controls {
+      .previous-episode {
+        top: 50%;
+        right: 55.7%;
+        display: flex;
+        cursor: pointer;
+        position: absolute;
+      }
+
+      .play-pause {
+        top: 50%;
+        right: 50%;
+        display: flex;
+        cursor: pointer;
+        margin-left: 10px;
+        position: absolute;
+      }
+
+      .next-episode {
+        top: 50%;
+        right: 44%;
+        display: flex;
+        cursor: pointer;
+        position: absolute;
+      }
+    }
+
+    .hover-time {
+      right: 2.5%;
+      bottom: 20px;
+      font-size: 16px;
+      margin-left: 28px;
+      position: absolute;
+    }
+
+    .lower-controls {
+      bottom: 3%;
+      width: calc(100% - 100px);
+      height: 20px;
+      padding: 0px 50px;
+      position: absolute;
+
+      .player-time {
+        left: 2.5%;
+        bottom: 20px;
+        font-size: 22px;
+        position: absolute;
+      }
+
+      .volume {
+        left: 5%;
+        bottom: -28px;
+        display: flex;
+        position: absolute;
+
+        .area {
+          width: 40px;
+          height: 40px;
+          position: relative;
+
+          &:hover {
+            input {
+              opacity: 1;
+              touch-action: auto;
+            }
+          }
+        }
+
+        svg {
+          left: 0px;
+          bottom: 0px;
+          font-size: 35px;
+          position: absolute;
+        }
+
+        input {
+          opacity: 0;
+          left: 45px;
+          bottom: 7px;
+          overflow: hidden;
+          touch-action: none;
+          position: absolute;
+          border-radius: 6px;
+          transition: 0.2s ease-in-out;
+
+          &:hover {
+            opacity: 1;
+            width: auto;
+            touch-action: auto;
+          }
+        }
+      }
+
+      .settings {
+        left: 2.5%;
+        width: 40px;
+        height: 40px;
+        bottom: -28px;
+        display: flex;
+        cursor: pointer;
+        position: absolute;
+
+        .icon {
+          font-size: 35px;
+        }
+      }
+
+      .fullscreen {
+        right: 2.5%;
+        width: 40px;
+        height: 40px;
+        bottom: -32px;
+        display: flex;
+        position: absolute;
+
+        svg {
+          font-size: 35px;
+          vertical-align: middle;
+        }
+      }
+
+      .progress-section {
+        z-index: 102;
+        width: 100%;
+        height: 7px;
+        cursor: grab;
+        display: flex;
+        overflow: hidden;
+        border-radius: 6px;
+        position: relative;
+        background-color: #bebbbbb2;
+
+        &:active {
+          cursor: grabbing;
+        }
+
+        .loaded-bar {
+          height: 7px;
+          position: absolute;
+          border-radius: 6px;
+          background-color: var(--font-color-3);
+        }
+
+        .progress-bar {
+          height: 7px;
+          z-index: 101;
+          border-radius: 6px;
+          background-color: var(--color-signature);
+
+          &::before {
+            top: 50%;
+            content: "";
+            width: 15px;
+            height: 15px;
+            right: -10px;
+            position: absolute;
+            transform: translate(-50%);
+          }
+        }
+      }
+    }
+  }
+}
+
+@keyframes lds-spinner {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.loading {
+  width: 80px;
+  height: 80px;
+  position: relative;
+  display: inline-block;
+  box-sizing: border-box;
+  color: var(--font-color-1);
+  div {
+    box-sizing: border-box;
+    transform-origin: 40px 40px;
+    animation: lds-spinner 1.2s linear infinite;
+    &:after {
+      box-sizing: border-box;
+      background: currentColor;
+      border-radius: 20%;
+      content: " ";
+      display: block;
+      height: 17.6px;
+      left: 36.8px;
+      position: absolute;
+      top: 3.2px;
+      width: 6.4px;
+    }
+    &:nth-child(1) {
+      animation-delay: -1.1s;
+      transform: rotate(0deg);
+    }
+    &:nth-child(2) {
+      animation-delay: -1s;
+      transform: rotate(30deg);
+    }
+    &:nth-child(3) {
+      animation-delay: -0.9s;
+      transform: rotate(60deg);
+    }
+    &:nth-child(4) {
+      animation-delay: -0.8s;
+      transform: rotate(90deg);
+    }
+    &:nth-child(5) {
+      animation-delay: -0.7s;
+      transform: rotate(120deg);
+    }
+    &:nth-child(6) {
+      animation-delay: -0.6s;
+      transform: rotate(150deg);
+    }
+    &:nth-child(7) {
+      animation-delay: -0.5s;
+      transform: rotate(180deg);
+    }
+    &:nth-child(8) {
+      animation-delay: -0.4s;
+      transform: rotate(210deg);
+    }
+    &:nth-child(9) {
+      animation-delay: -0.3s;
+      transform: rotate(240deg);
+    }
+    &:nth-child(10) {
+      animation-delay: -0.2s;
+      transform: rotate(270deg);
+    }
+    &:nth-child(11) {
+      animation-delay: -0.1s;
+      transform: rotate(300deg);
+    }
+    &:nth-child(12) {
+      animation-delay: 0s;
+      transform: rotate(330deg);
+    }
+  }
+}

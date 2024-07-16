@@ -1,0 +1,227 @@
+$color_1: var(--font-color-1);
+$color_2: var(--font-color-2);
+$color_3: #df3b3b;
+$color_4: #55e088;
+$background-color_1: var(--color-wrapper);
+$background-color_2: #00000080;
+
+@keyframes showOpacity {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes hideOpacity {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+section {
+  position: relative;
+  .scroll-buttons {
+    display: flex;
+    gap: 10px;
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: 30;
+    button {
+      align-items: center;
+      background-color: $background-color_1;
+      border: none;
+      border-radius: 100px;
+      cursor: pointer;
+      display: flex;
+      height: 30px;
+      justify-content: center;
+      outline: none;
+      transition: 0.2s ease-in-out;
+      width: 30px;
+      &:hover {
+        transform: scale(1.1);
+      }
+      svg {
+        color: $color_1;
+        font-size: 25px;
+      }
+    }
+  }
+  .show {
+    animation-duration: 0.4s;
+    animation-fill-mode: forwards;
+    animation-iteration-count: 1;
+    animation-name: showOpacity;
+    animation-timing-function: ease;
+  }
+  .hidden {
+    animation-duration: 0.2s;
+    animation-fill-mode: forwards;
+    animation-iteration-count: 1;
+    animation-name: hideOpacity;
+    animation-timing-function: ease;
+  }
+  h1 {
+    margin: 0;
+    width: 75%;
+    color: $color_1;
+    text-align: left;
+    font-weight: 700;
+  }
+  .list-wrapper {
+    margin: -50px;
+    overflow-x: hidden;
+    overflow-y: visible;
+    padding: 50px;
+    position: relative;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+  }
+  .list {
+    display: flex;
+    flex-direction: row;
+    float: left;
+    gap: 25px;
+    padding-bottom: 10px;
+    width: max-content;
+    z-index: 40;
+  }
+}
+a {
+  text-decoration: none;
+  .entry {
+    border-radius: 6px;
+    height: min-content;
+    margin-top: 10px;
+    position: relative;
+    transition: 0.2s ease-in-out;
+    width: 175px;
+    will-change: transform;
+    &:not(.skeleton) {
+      cursor: pointer;
+      &:hover {
+        .cover {
+          transform: scale(1.03);
+        }
+        .transition-cover {
+          opacity: 1;
+        }
+        .status {
+          opacity: 1;
+        }
+        .play-icon {
+          opacity: 1;
+        }
+      }
+    }
+    .cover {
+      border-radius: 6px;
+      box-shadow: inset 0 -50px 18px -22px #00000093;
+      height: 262.5px;
+      object-fit: cover;
+      position: relative;
+      display: flex;
+      transition: 0.2s ease-in-out;
+      .transition-cover {
+        background-color: $background-color_2;
+        border-radius: 6px;
+        height: 100%;
+        opacity: 0;
+        position: absolute;
+        transition: 0.2s ease-in-out;
+        width: 100%;
+        z-index: 10;
+      }
+      .play-icon {
+        color: $color_1;
+        font-size: 50px;
+        left: 50%;
+        opacity: 0;
+        position: absolute;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        transition: 0.2s ease-in-out;
+        z-index: 20;
+      }
+      .status {
+        bottom: 0;
+        left: 50%;
+        opacity: 0;
+        z-index: 20;
+        display: flex;
+        font-weight: 500;
+        position: absolute;
+        width: fit-content;
+        white-space: nowrap;
+        transform: translate(-50%, 0);
+        transition: 0.2s ease-in-out;
+      }
+      img {
+        border-radius: 6px;
+        height: 100%;
+        object-fit: cover;
+        width: 100%;
+      }
+    }
+    .content {
+      bottom: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      height: 50%;
+      text-align: left;
+      width: 100%;
+      .title {
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        color: $color_1;
+        display: -webkit-box;
+        float: left;
+        font-size: 16px;
+        margin: 0;
+        font-weight: 500;
+        margin-top: 5px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .other-info {
+        color: $color_2;
+        display: flex;
+        flex-direction: row;
+        font-size: 14px;
+        gap: 10px;
+        position: relative;
+        width: 100%;
+        .episodes {
+          align-items: center;
+          display: flex;
+          justify-content: start;
+          margin: 0;
+          width: 75%;
+        }
+        .rating {
+          align-items: center;
+          display: flex;
+          justify-content: end;
+          margin: 0;
+          text-align: end;
+          width: 100%;
+        }
+      }
+    }
+  }
+}
+.NOT_YET_RELEASED {
+  font-size: 15px;
+  color: $color_3;
+}
+.RELEASING {
+  color: $color_4;
+}
+.FINISHED {
+  color: $color_1;
+}

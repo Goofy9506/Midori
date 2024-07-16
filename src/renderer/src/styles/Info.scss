@@ -1,0 +1,191 @@
+.info {
+  padding-bottom: 30px;
+
+  .content {
+    .banner {
+      height: 250px;
+      object-fit: cover;
+
+      .gradient {
+        top: -0px;
+        width: 100%;
+        height: 250px;
+        position: absolute;
+        background: linear-gradient(180deg, #ffffff00 25%, #171920);
+      }
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 6px;
+      }
+    }
+
+    .section-info {
+      gap: 10px;
+      padding: 5px;
+      display: flex;
+      flex-direction: column;
+      background-color: #171920;
+
+      .details {
+        top: 15%;
+        left: 5%;
+        display: flex;
+        position: absolute;
+
+        img {
+          width: 200px;
+          height: 300px;
+          object-fit: cover;
+          border-radius: 6px;
+        }
+
+        .title-details {
+          padding: 10px;
+          display: flex;
+          text-align: left;
+          margin: 20px 18px;
+          position: relative;
+          align-self: self-end;
+          flex-direction: column;
+
+          h1 {
+            font-weight: 700;
+            overflow: hidden;
+            font-size: 1.7rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            text-overflow: ellipsis;
+            color: var(--font-color-1);
+            -webkit-box-orient: vertical;
+          }
+
+          h2 {
+            margin: 0 0 3px;
+            font-size: 20px;
+            font-weight: 500;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            text-overflow: ellipsis;
+            color: var(--font-color-2);
+            -webkit-box-orient: vertical;
+          }
+
+          .tiny-details {
+            margin: 8px 0;
+
+            .play-now {
+              color: #000;
+              display: flex;
+              font-weight: 400;
+              padding: 5px 10px;
+              width: max-content;
+              border-radius: 6px;
+              align-items: center;
+              transition: 0.2s ease-in-out;
+              background-color: var(--font-color-1);
+              box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+
+              svg {
+                font-size: 28px;
+              }
+
+              &:hover {
+                background-color: var(--font-color-2);
+              }
+            }
+          }
+        }
+
+        .description {
+          height: 90px;
+          font-size: 13px;
+          overflow-y: scroll;
+          color: var(--font-color-2);
+        }
+      }
+
+      .overview {
+        width: 89%;
+        padding: 10px;
+        display: flex;
+        margin-left: 4.5%;
+        margin-top: 260px;
+        border-radius: 6px;
+        flex-direction: row;
+        background-color: #0f1115;
+
+        .information {
+          gap: 0px;
+          display: flex;
+          font-size: 11px;
+          margin-right: 50px;
+          flex-direction: column;
+          align-items: flex-start;
+          color: var(--font-color-1);
+
+          p {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--font-color-1);
+
+            strong {
+              font-weight: 200;
+              color: var(--font-color-2);
+            }
+          }
+
+          .genres {
+            text-align: left;
+
+            strong {
+              padding: 2.5px;
+            }
+          }
+        }
+
+        .description {
+          width: 75%;
+          display: flex;
+          font-size: 11px;
+          flex-direction: column;
+          align-items: flex-start;
+          color: var(--font-color-1);
+
+          p {
+            font-size: 13px;
+            text-align: left;
+            color: var(--font-color-2);
+          }
+        }
+      }
+    }
+
+    .relations {
+      padding: 0;
+      display: flex;
+      text-align: left;
+      margin-left: 4.5%;
+      margin-top: 210px;
+      flex-direction: column;
+
+      h1 {
+        margin: 0;
+        margin-left: 5px;
+        font-size: 21px;
+        color: var(--font-color-1);
+      }
+
+      .list {
+        gap: 25px;
+        display: flex;
+        padding: 0px 5px;
+        overflow-x: scroll;
+        flex-direction: row;
+      }
+    }
+  }
+}
