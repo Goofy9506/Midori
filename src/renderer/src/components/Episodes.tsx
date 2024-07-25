@@ -1,6 +1,6 @@
 /* eslint-disable solid/prefer-for */
 // import { useParams } from '@solidjs/router'
-import { For, Show, createSignal, type Component } from 'solid-js'
+import { For, Show, createEffect, createSignal, type Component } from 'solid-js'
 
 import '../styles/Episodes.scss'
 import Player from './Player'
@@ -12,15 +12,16 @@ import {
 } from 'solid-icons/ri'
 import { STORAGE } from '@renderer/utils/Storage'
 
-interface Props {
+interface props {
   animeInfo: any
   episodeInfo: any
   aniInfo: any
+  fillerInfo: any
 }
 
 const AutoUpdate = await STORAGE.getAutoUpdate()
 const [autoUpdate, setAutoUpdate] = createSignal<boolean>(false)
-const Episodes: Component<Props> = (Props) => {
+const Episodes: Component<props> = (props) => {
   const [playingEpisode, setPlayingEpisode] = createSignal<any>()
   const [filter, setFilter] = createSignal<number>(0)
   const [dialog, setDialog] = createSignal<boolean>(false)
@@ -55,9 +56,9 @@ const Episodes: Component<Props> = (Props) => {
   const sortEpisodes = (): number[][] => {
     let perPage: number = 100
     const episodes: number[][] = []
-    const episodeNum: number = Props.animeInfo.nextAiringEpisode
-      ? Props.animeInfo.nextAiringEpisode?.episode - 1
-      : Props.animeInfo.episodes
+    const episodeNum: number = props.animeInfo.nextAiringEpisode
+      ? props.animeInfo.nextAiringEpisode?.episode - 1
+      : props.animeInfo.episodes
     episodeNum > 25 && episodeNum < 100 ? (perPage = 25) : (perPage = 100)
     const pages: number = Math.ceil(episodeNum / perPage)
 
@@ -82,12 +83,16 @@ const Episodes: Component<Props> = (Props) => {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
   }
 
+  createEffect(() => {
+    props.animeInfo.id_mal = props.aniInfo?.mappings?.mal_id
+  })
+
   return (
     <>
       {showPlayer() && (
         <Player
-          animeInfo={Props.animeInfo}
-          episodeData={Props.episodeInfo}
+          animeInfo={props.animeInfo}
+          episodeData={props.episodeInfo}
           episode={playingEpisode()}
           subOrDub={subOrDub()}
           onClose={() => setShowPlayer(false)}
@@ -176,8 +181,8 @@ const Episodes: Component<Props> = (Props) => {
         </div>
       </div>
       <div class={`blur ${dialog() ? '' : 'hidden'}`} />
-      <Show when={Props.episodeInfo}>
-        {pages?.length !== 0 && Props.episodeInfo?.length !== 0 && (
+      <Show when={props.episodeInfo}>
+        {pages?.length !== 0 && props.episodeInfo?.length !== 0 && (
           <div class="episode-list">
             <h1>
               Episodes
@@ -211,30 +216,33 @@ const Episodes: Component<Props> = (Props) => {
               <For each={pages[filter()]}>
                 {(episode) => (
                   <div
-                    class="episode"
+                    class={`episode ${props.fillerInfo?.[episode]?.filler ? 'filler' : ''}`}
                     onClick={() => {
-                      setPlayingEpisode(Props.episodeInfo[episode])
+                      setPlayingEpisode(props.episodeInfo[episode])
                       setShowPlayer(true)
                     }}
                   >
-                    {Props.episodeInfo[episode].image ? (
-                      <img src={Props.episodeInfo[episode].image} alt="" class="image" />
+                    {props.episodeInfo[episode].image ? (
+                      <img src={props.episodeInfo[episode].image} alt="" class="image" />
                     ) : (
-                      <img src={Props.animeInfo.coverImage.large} alt="" class="image" />
+                      <img src={props.animeInfo.coverImage.large} alt="" class="image" />
                     )}
                     <div class="content">
                       <div class="episode-title">
-                        {Props.episodeInfo[episode].episode}.{' '}
-                        {Props.episodeInfo[episode]?.title?.en ||
-                          'Episode ' + Props.episodeInfo[episode].episode}
+                        {props.episodeInfo[episode].episode}.{' '}
+                        {props.episodeInfo[episode]?.title?.en ||
+                          'Episode ' + props.episodeInfo[episode].episode}
                       </div>
-                      <div class="summary">{Props.episodeInfo[episode].summary}</div>
+                      <div class="summary">{props.episodeInfo[episode].summary}</div>
                       <div class="tiny-details">
-                        {Props.episodeInfo[episode].length ? (
-                          <div class="episode-length">{Props.episodeInfo[episode].length}m</div>
+                        {props.episodeInfo[episode].length ? (
+                          <div class="episode-length">{props.episodeInfo[episode].length}m</div>
                         ) : null}
                         <div class="episode-date">
-                          {sinceDate(new Date(Props.episodeInfo[episode].airDate))}
+                          {sinceDate(new Date(props.episodeInfo[episode].airDate))}
+                        </div>
+                        <div class="filler">
+                          {props.fillerInfo?.[episode]?.filler ? 'Filler' : ''}
                         </div>
                       </div>
                     </div>

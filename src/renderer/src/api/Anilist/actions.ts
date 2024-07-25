@@ -1,3 +1,4 @@
+import { MediaFormat, MediaStatus, MediaType } from '@renderer/types/Anilist'
 import { STORAGE } from '@renderer/utils/Storage'
 import axios from 'axios'
 
@@ -354,7 +355,6 @@ export const setAnimeStatus = async (
   await makeRequest(METHOD, GRAPH_QL_URL, headers, options)
 }
 
-//type: string
 export const getTrending = async (type: string, season: string, year: number) => {
   const headers = {
     'Content-Type': 'application/json',
@@ -379,6 +379,58 @@ export const getTrending = async (type: string, season: string, year: number) =>
   const options = getOptions(query)
   const response = await makeRequest(METHOD, GRAPH_QL_URL, headers, options)
   return response.data.Page
+}
+
+export const getTrendingMovies = async () => {
+  const headers = {
+    'Content-Type': 'application/json',
+    Accept: 'application/json'
+  }
+
+  const query = `
+{
+  Page(page: 1, perPage: 50) {
+    pageInfo {
+      hasNextPage
+      total
+    }
+    media(sort: POPULARITY_DESC, type: ANIME, format: MOVIE) {
+      ${MEDIA_DATA}
+    }
+  }
+}
+
+  `
+
+  const options = getOptions(query)
+  const response = await makeRequest(METHOD, GRAPH_QL_URL, headers, options)
+  return response.data.Page.media
+}
+
+export const getTopRatedAnime = async () => {
+  const headers = {
+    'Content-Type': 'application/json',
+    Accept: 'application/json'
+  }
+
+  const query = `
+{
+  Page(page: 1, perPage: 50) {
+    pageInfo {
+      hasNextPage
+      total
+    }
+    media(sort: SCORE_DESC, type: ANIME) {
+      ${MEDIA_DATA}
+    }
+  }
+}
+
+`
+
+  const options = getOptions(query)
+  const response = await makeRequest(METHOD, GRAPH_QL_URL, headers, options)
+  return response.data.Page.media
 }
 
 export const getUpdatedAnime = async () => {
@@ -408,4 +460,50 @@ export const getUpdatedAnime = async () => {
   const options = getOptions(query)
   const response = await makeRequest(METHOD, GRAPH_QL_URL, headers, options)
   return response.data.Page.airingSchedules
+}
+
+export const search = async (
+  type: MediaType,
+  page: number = 1,
+  perPage: number = 50,
+  search: string,
+  sort: string = '[POPULARITY_DESC, SCORE_DESC, START_DATE_DESC]',
+  genres?: any,
+  tags?: any,
+  status?: MediaStatus,
+  format?: MediaFormat,
+  countryOfOrigin?: any,
+  source?: any,
+  isAdult: boolean = false,
+  // excludedGenres: string = '',
+  // excludedTags: string = '',
+  startYear?: any,
+  seasonYear?: any,
+  season?: any,
+  id?: any
+) => {
+  const headers = {
+    'Content-Type': 'application/json',
+    Accept: 'application/json'
+  }
+
+  const query = `
+      {
+          Page(page: ${page}, perPage: ${perPage}) {
+              pageInfo {
+                  total
+                  currentPage
+                  hasNextPage
+              }
+              media(type: ${type}, search: "${search}"${sort ? `,sort: ${sort}` : ''}${status ? `,status: ${status}` : ''}${format ? `,format: ${format}` : ''}${countryOfOrigin ? `,countryOfOrigin: ${countryOfOrigin}` : ''}${source ? `,source: ${source}` : ''}${isAdult ? `,isAdult: ${isAdult}` : ''}${genres ? `,genres: ${genres}` : ''}${tags ? `,tags: ${tags}` : ''}${startYear ? `,startYear: ${startYear}` : ''}${seasonYear ? `,seasonYear: ${seasonYear}` : ''}${season ? `,season: ${season}` : ''}${id ? `,id: ${id}` : ''}) {
+                  ${MEDIA_DATA}
+              }
+          }
+
+  }
+  `
+
+  const options = getOptions(query)
+  const response = await makeRequest(METHOD, GRAPH_QL_URL, headers, options)
+  return response.data.Page
 }

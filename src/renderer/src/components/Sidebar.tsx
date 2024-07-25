@@ -29,7 +29,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
     <div class="sidebar">
       <div class="top">
         <A
-          href="/home"
+          href="/"
           class={active() === 1 ? 'sidebar-link active' : 'sidebar-link'}
           onClick={() => setActive(1)}
         >

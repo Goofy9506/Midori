@@ -28,37 +28,69 @@ const Entry: Component<Props> = ({ media }) => {
   return (
     <>
       <Show when={media}>
-        <A href={`/info/${media?.media?.id}`}>
-          <div class={`entry ${media ? '' : 'skeleton'}`}>
-            <div class="cover" style={{ 'background-color': 'transparent' }}>
-              <RiMediaPlayFill class="play-icon" />
-              <div class="transition-cover" />
-              <img src={media?.media?.coverImage?.large} alt="cover" />
-              <div class={`status ${media?.media?.status}`}>
-                {statusToTest(media?.media?.status)}
+        {media.media ? (
+          <A href={`/info/${media?.media?.id}`}>
+            <div class={`entry ${media ? '' : 'skeleton'}`}>
+              <div class="cover" style={{ 'background-color': 'transparent' }}>
+                <RiMediaPlayFill class="play-icon" />
+                <div class="transition-cover" />
+                <img src={media?.media?.coverImage?.large} alt="cover" />
+                <div class={`status ${media?.media?.status}`}>
+                  {statusToTest(media?.media?.status)}
+                </div>
               </div>
-            </div>
-            <div class="content">
-              <h2 class="title">{media?.media?.title?.english || media?.media?.title?.romaji}</h2>
-              <div class="other-info">
-                {media && media?.media?.type === 'ANIME' ? (
-                  <div class="episodes">
-                    {media && `${media.progress || '~'} | ${media.media.episodes || '~'}`}
+              <div class="content">
+                <h2 class="title">{media?.media?.title?.english || media?.media?.title?.romaji}</h2>
+                <div class="other-info">
+                  {media && media?.media?.type === 'ANIME' ? (
+                    <div class="episodes">
+                      {media && `${media.progress || '~'} | ${media.media.episodes || '~'}`}
+                    </div>
+                  ) : (
+                    <div class="episodes">
+                      {media && `${media?.progress || '~'} | ${media?.media?.chapters || '~'}`}
+                    </div>
+                  )}
+                  <div class="rating">
+                    {media && media?.media?.meanScore === 0
+                      ? `0 / 10`
+                      : `${(media.media.meanScore as number) / 10} / 10`}
                   </div>
-                ) : (
-                  <div class="episodes">
-                    {media && `${media?.progress || '~'} | ${media?.media?.chapters || '~'}`}
-                  </div>
-                )}
-                <div class="rating">
-                  {media && media?.media?.meanScore === 0
-                    ? `0 / 10`
-                    : `${(media.media.meanScore as number) / 10} / 10`}
                 </div>
               </div>
             </div>
-          </div>
-        </A>
+          </A>
+        ) : (
+          <A href={`/info/${media?.id}`}>
+            <div class={`entry ${media ? '' : 'skeleton'}`}>
+              <div class="cover" style={{ 'background-color': 'transparent' }}>
+                <RiMediaPlayFill class="play-icon" />
+                <div class="transition-cover" />
+                <img src={media?.coverImage?.large} alt="cover" />
+                <div class={`status ${media?.status}`}>{statusToTest(media?.status)}</div>
+              </div>
+              <div class="content">
+                <h2 class="title">{media?.title?.english || media?.title?.romaji}</h2>
+                <div class="other-info">
+                  {media && media?.type === 'ANIME' ? (
+                    <div class="episodes">
+                      {media && `${media.progress || '~'} | ${media.episodes || '~'}`}
+                    </div>
+                  ) : (
+                    <div class="episodes">
+                      {media && `${media?.progress || '~'} | ${media?.chapters || '~'}`}
+                    </div>
+                  )}
+                  <div class="rating">
+                    {media && media?.meanScore === 0
+                      ? `0 / 10`
+                      : `${(media?.meanScore as number) / 10} / 10`}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </A>
+        )}
       </Show>
     </>
   )

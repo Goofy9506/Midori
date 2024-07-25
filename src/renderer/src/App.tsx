@@ -5,7 +5,9 @@ import Sidebar from './components/Sidebar'
 import Titlebar from './components/Titlebar'
 import { StorageProvider } from './hooks/Storage'
 import {
+  getTopRatedAnime,
   getTrending,
+  getTrendingMovies,
   getUpdatedAnime,
   getUserAvatar,
   getUserId,
@@ -15,6 +17,8 @@ import {
 export const [mangaInfo, setMangaInfo] = createSignal<any>(null)
 export const [animeInfo, setAnimeInfo] = createSignal<any>(null)
 export const [trendingAnimeInfo, setTrendingAnimeInfo] = createSignal<any>(null)
+export const [trendingMovies, setTrendingMovies] = createSignal<any>(null)
+export const [topRatedAnime, setTopRatedAnime] = createSignal<any>(null)
 export const [updatedAnimeInfo, setUpdatedAnimeInfo] = createSignal<any>(null)
 
 const App: Component = (props: ComponentProps<'div'>) => {
@@ -43,6 +47,8 @@ const App: Component = (props: ComponentProps<'div'>) => {
   createEffect(() => {
     const getData = async () => {
       setTrendingAnimeInfo(await getTrending('ANIME', season, new Date().getFullYear()))
+      setTopRatedAnime(await getTopRatedAnime())
+      setTrendingMovies(await getTrendingMovies())
       setUpdatedAnimeInfo(await getUpdatedAnime())
     }
     getData()

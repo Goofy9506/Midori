@@ -8,6 +8,9 @@ const StorageContext = createContext<StoreContextType>({
   EpisodeProgress: STORE_SCHEMA.EpisodeProgress.default,
   Volume: STORE_SCHEMA.Volume.default,
   AutoUpdate: STORE_SCHEMA.AutoUpdate.default,
+  AudioLanguage: STORE_SCHEMA.AudioLanguage.default,
+  SkipOPED: STORE_SCHEMA.SkipOPED.default,
+  LoadTimeStamps: STORE_SCHEMA.LoadTimeStamps.default,
   setStore: async () => {}
 })
 
@@ -20,9 +23,12 @@ export function useStorageContext() {
  * @returns Object containing state variables and setStore function
  */
 export const useStorage = (): StoreContextType => {
-  const [AnilistToken, setAnilistToken] = createSignal<string>(STORE_SCHEMA.AnilistToken)
+  const [LoadTimeStamps, setLoadTimeStamps] = createSignal<boolean>(STORE_SCHEMA.LoadTimeStamps)
   const [EpisodeProgress, setEpisodeProgress] = createSignal<[]>(STORE_SCHEMA.EpisodeProgress)
+  const [AudioLanguage, setAudioLanguage] = createSignal<string>(STORE_SCHEMA.AudioLanguage)
+  const [AnilistToken, setAnilistToken] = createSignal<string>(STORE_SCHEMA.AnilistToken)
   const [AutoUpdate, setAutoUpdate] = createSignal<boolean>(STORE_SCHEMA.AutoUpdate)
+  const [SkipOPED, setSkipOPED] = createSignal<boolean>(STORE_SCHEMA.SkipOPED)
   const [Logged, setLogged] = createSignal<boolean>(STORE_SCHEMA.Logged)
   const [Volume, setVolume] = createSignal<number>(STORE_SCHEMA.Volume)
 
@@ -33,8 +39,11 @@ export const useStorage = (): StoreContextType => {
     const store = await STORAGE.getStore()
 
     if (store.EpisodeProgress !== EpisodeProgress()) setEpisodeProgress(store.EpisodeProgress)
+    if (store.LoadTimeStamps !== LoadTimeStamps()) setLoadTimeStamps(store.LoadTimeStamps)
+    if (store.AudioLanguage !== AudioLanguage()) setAudioLanguage(store.AudioLanguage)
     if (store.AnilistToken !== AnilistToken()) setAnilistToken(store.AnilistToken)
     if (store.AutoUpdate !== AutoUpdate()) setAutoUpdate(store.AutoUpdate)
+    if (store.SkipOPED !== SkipOPED()) setSkipOPED(store.SkipOPED)
     if (store.Logged !== Logged()) setLogged(store.Logged)
     if (store.Volume !== Volume()) setVolume(store.Volume)
   }
@@ -65,6 +74,15 @@ export const useStorage = (): StoreContextType => {
       case 'AutoUpdate':
         setAutoUpdate(value)
         break
+      case 'AudioLanguage':
+        setAudioLanguage(value)
+        break
+      case 'SkipOPED':
+        setSkipOPED(value)
+        break
+      case 'LoadTimeStamps':
+        setLoadTimeStamps(value)
+        break
       default:
         break
     }
@@ -78,6 +96,9 @@ export const useStorage = (): StoreContextType => {
     EpisodeProgress,
     Volume,
     AutoUpdate,
+    AudioLanguage,
+    SkipOPED,
+    LoadTimeStamps,
     setStore
   }
 }

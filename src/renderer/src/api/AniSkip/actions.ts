@@ -1,4 +1,3 @@
-import { AniSkipTime } from '@renderer/types/Ani'
 import axios, { AxiosInstance } from 'axios'
 
 export default class AniSkip {
@@ -27,10 +26,22 @@ export default class AniSkip {
    * @returns Skip times data.
    */
   public async getAniSkip(id: string, episode: number): Promise<any> {
-    return (
-      await this.axiosInstance.get<AniSkipTime>(
-        `/${id}/${episode}?types[]=ed&types[]=mixed-ed&types[]=mixed-op&types[]=op&types[]=recap&episodeLength=`
-      )
-    ).data
+    let data: any = undefined
+    try {
+      await this.axiosInstance
+        .get(
+          `/${id}/${episode}?types[]=ed&types[]=mixed-ed&types[]=mixed-op&types[]=op&types[]=recap&episodeLength=`
+        )
+        .then((response) => {
+          data = response.data.results
+        })
+        .catch((error) => {
+          console.error('Error fetching skip times:', error)
+        })
+
+      return data
+    } catch (error) {
+      console.error('Error fetching skip times:', error)
+    }
   }
 }

@@ -1,10 +1,11 @@
 .slideshow-container {
   width: 100%;
   margin: auto;
-  height: 491px;
+  height: 371px;
   overflow: hidden;
   position: relative;
   border-radius: 6px;
+  margin-bottom: 10px;
 
   .slideshow-wrapper {
     width: 100%;
@@ -22,7 +23,7 @@
       height: 250px;
       position: absolute;
       border-radius: 6px;
-      background: linear-gradient(180deg, #ffffff00 20%, #242831);
+      background: linear-gradient(180deg, #ffffff00 0%, #242831);
     }
 
     .slideshow {
@@ -57,7 +58,7 @@
       }
 
       .info {
-        top: 30px;
+        top: -60px;
         left: 50px;
         z-index: 10;
         padding-top: 100px;

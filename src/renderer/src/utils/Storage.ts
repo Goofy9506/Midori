@@ -32,6 +32,21 @@ const getAutoUpdate = async (): Promise<boolean> => {
   return autoupdate
 }
 
+const getAudioLanguage = async (): Promise<string> => {
+  const audiolanguage = await ipcRenderer.invoke('getStoreValue', 'AudioLanguage')
+  return audiolanguage
+}
+
+const getSkipOPED = async (): Promise<boolean> => {
+  const skipoped = await ipcRenderer.invoke('getStoreValue', 'SkipOPED')
+  return skipoped
+}
+
+const getLoadTimeStamps = async (): Promise<boolean> => {
+  const loadtimestamps = await ipcRenderer.invoke('getStoreValue', 'LoadTimeStamps')
+  return loadtimestamps
+}
+
 const set = async (key: StoreKeys, value: any): Promise<void> => {
   await ipcRenderer.invoke('setStoreValue', key, value)
 }
@@ -43,5 +58,8 @@ export const STORAGE = {
   getEpisodeProgress,
   getVolume,
   getAutoUpdate,
+  getAudioLanguage,
+  getSkipOPED,
+  getLoadTimeStamps,
   set
 }

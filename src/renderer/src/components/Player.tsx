@@ -37,6 +37,8 @@ export const [isFullscreen, setIsFullscreen] = createSignal<boolean>(false)
 const [settingsOpen, setSettingsOpen] = createSignal<boolean>(false)
 const [showed, setShowed] = createSignal<boolean>(true)
 export let volume: number = await STORAGE.getVolume()
+export let skipEnding: HTMLDivElement | undefined
+export let skipIntro: HTMLDivElement | undefined
 export let video: HTMLVideoElement | undefined
 export let track: HTMLTrackElement | undefined
 let sectionBar: HTMLDivElement | undefined
@@ -98,6 +100,8 @@ const Player: Component<PlayerProps> = (props) => {
 
   Handler.loadVideoSource()
   setIsFullscreen(false)
+
+  // Handler.getTimeStamps()
 
   return (
     <Portal mount={document.getElementById('midori-root') as HTMLElement}>
@@ -229,6 +233,12 @@ const Player: Component<PlayerProps> = (props) => {
           </div>
           <div class="lower-controls">
             <div class="player-time">{videoTime()}</div>
+            <div class="skip-intro" ref={skipIntro} onClick={Handler.skipIntro}>
+              Skip Intro
+            </div>
+            <div class="skip-ending" ref={skipEnding} onClick={Handler.skipEnding}>
+              Skip Ending
+            </div>
             {/* <div class="hover-time">{hoverTime()}</div> */}
             <div
               class="progress-section"

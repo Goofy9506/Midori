@@ -75,7 +75,28 @@
           }
 
           .tiny-details {
-            margin: 8px 0;
+            gap: 5px;
+            display: flex;
+            margin-top: 8px;
+            flex-direction: column;
+
+            .status {
+              color: #000;
+              display: flex;
+              font-weight: 400;
+              padding: 5px 18px;
+              width: max-content;
+              border-radius: 6px;
+              align-items: center;
+              transition: 0.2s ease-in-out;
+              background-color: var(--font-color-1);
+              box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+
+              &:hover {
+                cursor: pointer;
+                background-color: var(--font-color-2);
+              }
+            }
 
             .play-now {
               color: #000;
@@ -187,5 +208,21 @@
         flex-direction: row;
       }
     }
+  }
+}
+
+.minus-one {
+  cursor: pointer;
+
+  &:hover {
+    font-weight: 600;
+  }
+}
+
+.plus-one {
+  cursor: pointer;
+
+  &:hover {
+    font-weight: 600;
   }
 }

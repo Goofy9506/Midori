@@ -151,6 +151,15 @@
     background-color: #0f1115;
     transition: 0.2s ease-in-out;
 
+    &.filler {
+      background-color: hsl(20, 26%, 8%);
+
+      &:hover {
+        background-color: hsl(20, 25%, 12%);
+        outline: 1px solid var(--font-color-1);
+      }
+    }
+
     &:hover {
       background-color: #1f212b;
       outline: 1px solid var(--font-color-1);
@@ -216,6 +225,13 @@
         color: #d3d3d3;
         font-weight: 600;
         margin-left: auto;
+      }
+
+      .filler {
+        font-size: 12px;
+        color: #d3d3d3;
+        font-weight: 600;
+        margin-left: 5px;
       }
     }
   }

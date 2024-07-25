@@ -1,14 +1,24 @@
 /* eslint-disable solid/reactivity */
 import GogoAnime from '@renderer/api/Extractor/anime/en/GogoAnime'
 import Zoro from '@renderer/api/Extractor/anime/en/Zoro'
-import { defaultLanguage, setIsFullscreen, track, video, volume } from '@renderer/components/Player'
+import {
+  defaultLanguage,
+  setIsFullscreen,
+  skipEnding,
+  skipIntro,
+  track,
+  video
+} from '@renderer/components/Player'
 import { STORAGE } from '@renderer/utils/Storage'
 import axios, { Axios } from 'axios'
 import Hls from 'hls.js'
 import { createSignal } from 'solid-js'
 import Notify from './Notify'
-import { getAnime, setAnimeProgress, setAnimeStatus } from '@renderer/api/Anilist/actions'
+import { setAnimeProgress, setAnimeStatus } from '@renderer/api/Anilist/actions'
+import AniSkip from '@renderer/api/AniSkip/actions'
 
+export const [aniSkipError, setAniSkipError] = createSignal<boolean>(false)
+export const [aniSkipOnce, setAniSkipOnce] = createSignal<boolean>(false)
 export const [loading, setLoading] = createSignal<boolean>(true)
 export const [playing, setPlaying] = createSignal<boolean>(true)
 export const [subtitles, setSubtitles] = createSignal<any[]>([])
@@ -51,8 +61,8 @@ const sortQuality = (videos: any[]) => {
 
 export default class AnimeHandler {
   private axiosInstance: Axios = axios.create()
-  private userData: any
   private hlsData: Hls = new Hls()
+  private skipTimes: any[] = []
   private animeInfo: any
   private subOrDub: string
   private episodeData: any
@@ -96,6 +106,10 @@ export default class AnimeHandler {
   private saveVideoProgress = async () => {
     if (!video) return
     const episodeData = await STORAGE.getEpisodeProgress()
+
+    if (episodeData === undefined) {
+      STORAGE.set('EpisodeProgress', {})
+    }
 
     const existingEpisodeIndex = episodeData.findIndex(
       (item) => item.media === this.animeInfo.title.english && item.episode === episodeNumber()
@@ -200,6 +214,7 @@ export default class AnimeHandler {
    */
   private retrieveZoro = async () => {
     const zoro = new Zoro()
+    const language = await STORAGE.getAudioLanguage()
     const titles = await this.getExtraTitles()
     for (const title of titles) {
       const searchResult = await zoro.search(title)
@@ -216,13 +231,23 @@ export default class AnimeHandler {
       )
       if (result) {
         const animeData = await zoro.fetchAnimeInfo(result.id)
-        const episodeId = animeData.episodes[episodeNumber() - 1].id.replace(
-          /\$both|\$sub|\$dub/,
-          `$${this.subOrDub}`
-        )
-        if (!episodeId.includes('$dub') && this.subOrDub === 'dub') {
-          new Notify().Alert('dub was not found, loading sub instead...')
+        if (!animeData.episodes[episodeNumber() - 1]) {
+          new Notify().Alert('Episode not found... Try again later!')
+          return
         }
+        let episodeId: string
+        if (language === 'en') {
+          episodeId = animeData.episodes[episodeNumber() - 1].id.replace(
+            /\$both|\$sub|\$dub/,
+            `$dub`
+          )
+          if (!episodeId.includes('$dub') && language === 'en') {
+            new Notify().Alert('dub was not found, loading sub instead...')
+          }
+        } else {
+          episodeId = animeData.episodes[episodeNumber() - 1].id
+        }
+
         const source = await zoro.videoSourceList(episodeId)
         if (source) {
           const currentSource = source.sources[0].url
@@ -265,18 +290,107 @@ export default class AnimeHandler {
   }
 
   /**
+   * Asynchronously retrieves the timestamps for the opening (op) and ending (ed) sequences of the current anime episode.
+   * Uses the AniSkip class to fetch skip times for the specified anime episode based on its ID and episode number.
+   * @returns An object containing arrays of timestamps for the opening and ending sequences.
+   */
+  public getTimeStamps = async () => {
+    const op: any = []
+    const ed: any = []
+    const timeStamp = await new AniSkip().getAniSkip(this.animeInfo.id_mal, episodeNumber())
+    if (!timeStamp) return setAniSkipError(true)
+    timeStamp.forEach((ep: any) => {
+      if (ep.skipType === 'ed') {
+        ed.push(ep)
+      }
+      if (ep.skipType === 'op') {
+        op.push(ep)
+      }
+    })
+    this.skipTimes.push({ op, ed })
+    return
+  }
+
+  /**
+   * Asynchronously updates the timestamps for the video player based on the current video time.
+   * Checks if the video is within the opening or ending intervals and adjusts the display of skipIntro and skipEnding accordingly.
+   */
+  public updateTimeStamps = () => {
+    if (!video) return
+
+    if (this.skipTimes.length === 0 && !aniSkipError() && !aniSkipOnce()) {
+      this.getTimeStamps()
+      setAniSkipOnce(true)
+    }
+
+    if (aniSkipError()) return
+
+    const checkInterval = async (element: any, button: any) => {
+      if (!video) return
+      const startTime = this.skipTimes[0]?.[element][0]?.interval.startTime
+      const endTime = this.skipTimes[0]?.[element][0]?.interval.endTime
+
+      if (video?.currentTime > startTime && video?.currentTime < endTime) {
+        if (!button) return
+        const SkipOPED = await STORAGE.getSkipOPED()
+        if (SkipOPED) {
+          if (element === 'op') {
+            this.skipIntro()
+          } else {
+            this.skipEnding()
+          }
+          return
+        }
+        button.style.display = 'block'
+      } else {
+        if (!button) return
+        if (button.style.display === 'block') {
+          button.style.display = 'none'
+        }
+      }
+    }
+
+    checkInterval('op', skipIntro)
+    checkInterval('ed', skipEnding)
+  }
+
+  /**
+   * Asynchronously skips the intro of the video.
+   * If the video element is not available, the function does nothing.
+   * Retrieves the intro end time from the timestamps and sets the video's current time to the end of the intro.
+   */
+  public skipIntro = async () => {
+    if (!video) return
+    const { op } = this.skipTimes[0]
+    video.currentTime = op[0]?.interval.endTime
+  }
+
+  /**
+   * Asynchronously skips the ending of the video.
+   * If the video element is not available, the function returns early.
+   * Retrieves the ending timestamp and sets the video's current time to the end time of the ending interval.
+   */
+  public skipEnding = async () => {
+    if (!video) return
+    const { ed } = this.skipTimes[0]
+    video.currentTime = ed[0]?.interval.endTime
+  }
+
+  /**
    * Loads the HLS video source and sets up event listeners for various HLS events.
    *
    * @param source - The HLS video source to load.
    */
-  private loadHLS = (source: string) => {
+  private loadHLS = async (source: string) => {
     if (!video) return
+    const volume: number = await STORAGE.getVolume()
     this.hlsData.loadSource(source)
     this.hlsData.attachMedia(video)
-    this.hlsData.on(Hls.Events.MANIFEST_LOADED, () => {
+    this.hlsData.on(Hls.Events.MANIFEST_LOADED, async () => {
       this.hlsData.startLoad()
       this.loadVideoProgress()
       setLoading(false)
+      setAniSkipError(false)
       document.addEventListener('keydown', this.keybindHandler)
       this.hlsData.currentLevel = this.hlsData.levels.length - 1
       if (interval) clearInterval(interval)
@@ -349,13 +463,15 @@ export default class AnimeHandler {
    * Updates the video time display by formatting the current time and duration of the video.
    * If the video element is not available, no action is taken.
    */
-  public videoTimeUpdate = () => {
+  public videoTimeUpdate = async () => {
     if (!video) return
+    const loadTimeStamps = await STORAGE.getLoadTimeStamps()
     if (video.readyState === 4) {
       setBufferedBar(`${(video?.buffered?.end(0) / (video?.duration ?? 0)) * 100}%`)
     }
     setVideoTime(formatTime(video.currentTime) + ' / ' + formatTime(video.duration))
     setProgressBar(`${(video.currentTime / video.duration) * 100}%`)
+    if (loadTimeStamps) this.updateTimeStamps()
   }
 
   /**
@@ -394,6 +510,16 @@ export default class AnimeHandler {
         event.preventDefault()
         video.currentTime -= 5
         break
+      case 'ArrowUp':
+        event.preventDefault()
+        video.volume = Math.min(Math.max(video.volume + 0.1, 0), 1)
+        STORAGE.set('Volume', video.volume)
+        break
+      case 'ArrowDown':
+        event.preventDefault()
+        video.volume = Math.min(Math.max(video.volume - 0.1, 0), 1)
+        STORAGE.set('Volume', video.volume)
+        break
       case 'ArrowRight':
         event.preventDefault()
         video.currentTime += 5
@@ -428,19 +554,32 @@ export default class AnimeHandler {
    * Retrieves the user's data for the anime, checks the current status, and updates the progress accordingly.
    */
   public saveToAnilist = async () => {
-    this.userData = await getAnime(this.animeInfo.id)
-    const status = this.userData.mediaListEntry.status
-    if (status === 'CURRENT') {
-      setAnimeProgress(this.animeInfo.id, episodeNumber())
-    }
-    if (status === 'REPEATING' || status === 'COMPLETED') {
-      setAnimeStatus(this.animeInfo.id, 'REWATCHING', episodeNumber())
-    } else {
-      setAnimeStatus(this.animeInfo.id, 'CURRENT', episodeNumber())
+    if (!video) return
+    if (episodeNumber() < this.animeInfo.mediaListEntry?.progress) return
+    if (video.currentTime < video.duration / 2) return
+    const status = this.animeInfo.mediaListEntry?.status
+    switch (status) {
+      case 'CURRENT':
+        setAnimeProgress(this.animeInfo.id, episodeNumber())
+        break
+      case 'REPEATING':
+      case 'COMPLETED':
+        setAnimeStatus(this.animeInfo.id, 'REWATCHING', episodeNumber())
+        break
+      default:
+        setAnimeStatus(this.animeInfo.id, 'CURRENT', episodeNumber())
+        break
     }
   }
 
-  private getExtraTitles = async () => {
+  /**
+   * Retrieves extra titles for the anime from the provided anime information.
+   * Combines English, Romaji, Native, and Synonyms titles, removes specific keywords,
+   * and returns a list of modified titles.
+   *
+   * @returns {string[]} List of modified anime titles
+   */
+  private getExtraTitles = (): string[] => {
     const titles: string[] = []
     const returnTitles: string[] = []
     if (this.animeInfo.title.english) {

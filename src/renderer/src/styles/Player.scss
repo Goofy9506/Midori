@@ -122,6 +122,44 @@
         position: absolute;
       }
 
+      .skip-intro {
+        left: 2.5%;
+        bottom: 60px;
+        padding: 5px;
+        display: none;
+        cursor: pointer;
+        font-size: 18px;
+        position: absolute;
+        border-radius: 6px;
+        transition: 0.2s ease-in-out;
+        background-color: #1f212b54;
+        outline: 1px solid var(--font-color-1);
+
+        &:hover {
+          background-color: #1f212b;
+          outline: 1px solid var(--font-color-1);
+        }
+      }
+
+      .skip-ending {
+        left: 2.5%;
+        bottom: 60px;
+        padding: 5px;
+        display: none;
+        cursor: pointer;
+        font-size: 18px;
+        position: absolute;
+        border-radius: 6px;
+        transition: 0.2s ease-in-out;
+        background-color: #1f212b54;
+        outline: 1px solid var(--font-color-1);
+
+        &:hover {
+          background-color: #1f212b;
+          outline: 1px solid var(--font-color-1);
+        }
+      }
+
       .volume {
         left: 5%;
         bottom: -28px;
