@@ -37,6 +37,7 @@ export default class Kitsu {
         nodes {
           number
           titles {
+            en
             canonical
           }
           description

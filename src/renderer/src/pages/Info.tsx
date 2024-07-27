@@ -24,6 +24,8 @@ const Info: Component = () => {
       setEpisodeInfo(Object.values(aniInfo().episodes))
       const filler = await new Jikan().getEpisodes(aniInfo().mappings.mal_id)
       setFillerInfo(filler)
+      // const ani2 = await new Kitsu().getEpisodes(Number(animeId))
+      // console.log(ani2)
     }
     getData()
   })

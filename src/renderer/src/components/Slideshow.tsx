@@ -1,6 +1,7 @@
 import { Component, For, createEffect, createSignal } from 'solid-js'
 
 import '../styles/Slideshow.scss'
+import { A } from '@solidjs/router'
 
 interface CardProps {
   listInfo: any
@@ -11,12 +12,17 @@ const SlideCard: Component<CardProps> = (props) => {
     <>
       <div class="slideshow">
         <div class="info">
-          <div class="cover">
+          <A class="cover" href={`/info/${props.listInfo.id}`}>
             <img src={props.listInfo.coverImage.large} alt="" />
-          </div>
+          </A>
           <div class="episodes">
-            {props.listInfo.nextAiringEpisode.episode - 1} / {props.listInfo.episodes || '??'}
-            <strong> Episodes</strong>
+            {props.listInfo.nextAiringEpisode?.episode - 1 || props.listInfo.chapters || '??'} /
+            {props.listInfo.episodes || props.listInfo.chapters || ' ??'}
+            {props.listInfo.type === 'MANGA' ? (
+              <strong> Chapters</strong>
+            ) : (
+              <strong> Episodes</strong>
+            )}
           </div>
           <div class="status">{props.listInfo.status}</div>
           <h1 class="title">{props.listInfo.title.english || props.listInfo.title.romaji}</h1>

@@ -1,6 +1,6 @@
 /* eslint-disable solid/prefer-for */
 // import { useParams } from '@solidjs/router'
-import { For, Show, createEffect, createSignal, type Component } from 'solid-js'
+import { For, createEffect, createSignal, type Component } from 'solid-js'
 
 import '../styles/Episodes.scss'
 import Player from './Player'
@@ -10,7 +10,6 @@ import {
   RiEditorListUnordered,
   RiSystemMenuFill
 } from 'solid-icons/ri'
-import { STORAGE } from '@renderer/utils/Storage'
 
 interface props {
   animeInfo: any
@@ -19,8 +18,6 @@ interface props {
   fillerInfo: any
 }
 
-const AutoUpdate = await STORAGE.getAutoUpdate()
-const [autoUpdate, setAutoUpdate] = createSignal<boolean>(false)
 const Episodes: Component<props> = (props) => {
   const [playingEpisode, setPlayingEpisode] = createSignal<any>()
   const [filter, setFilter] = createSignal<number>(0)
@@ -77,7 +74,6 @@ const Episodes: Component<props> = (props) => {
 
   // eslint-disable-next-line solid/reactivity
   const pages = sortEpisodes()
-  setAutoUpdate(AutoUpdate)
   const localUpperCase = (str: string) => {
     if (!str) return str
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
@@ -92,7 +88,7 @@ const Episodes: Component<props> = (props) => {
       {showPlayer() && (
         <Player
           animeInfo={props.animeInfo}
-          episodeData={props.episodeInfo}
+          episodeData={props.episodeInfo || null}
           episode={playingEpisode()}
           subOrDub={subOrDub()}
           onClose={() => setShowPlayer(false)}
@@ -149,110 +145,81 @@ const Episodes: Component<props> = (props) => {
               </div>
             </div>
           </div>
-          <div class="option">
-            <h1 class="option-title">
-              Auto Update Progress
-              <div class="name">{localUpperCase(autoUpdate() ? 'Yes' : 'No')}</div>
-            </h1>
-            <div class="switch">
-              <div
-                class={autoUpdate() ? 'selected' : ''}
-                onClick={() => {
-                  setAutoUpdate(true)
-                  STORAGE.set('AutoUpdate', true)
-                }}
-              >
-                Yes
-              </div>
-              <div
-                class={!autoUpdate() ? 'selected' : ''}
-                onClick={() => {
-                  setAutoUpdate(false)
-                  STORAGE.set('AutoUpdate', false)
-                }}
-              >
-                No
-              </div>
-            </div>
-          </div>
         </div>
         <div class="close">
           <div onClick={() => setDialog(false)}>Ok</div>
         </div>
       </div>
       <div class={`blur ${dialog() ? '' : 'hidden'}`} />
-      <Show when={props.episodeInfo}>
-        {pages?.length !== 0 && props.episodeInfo?.length !== 0 && (
-          <div class="episode-list">
-            <h1>
-              Episodes
-              <div>
-                <RiSystemMenuFill
-                  class="menu-icon"
-                  onClick={() => {
-                    setDialog(!dialog())
-                  }}
-                />
-              </div>
-            </h1>
-            {pages[0].length > 25 && (
-              <div class="filter">
-                <For each={pages}>
-                  {(page: any, index: any) => (
-                    <div
-                      onClick={() => {
-                        setFilter(index)
-                      }}
-                      class={`${filter() === index() ? 'selected' : ''}`}
-                    >
-                      {`${page[0] + 1} - ${page[page.length - 1] + 1}`}
-                    </div>
-                  )}
-                </For>
-              </div>
-            )}
-
-            <div class={`list ${layout()} `}>
-              <For each={pages[filter()]}>
-                {(episode) => (
+      {pages?.length !== 0 && (
+        <div class="episode-list">
+          <h1>
+            Episodes
+            <div>
+              <RiSystemMenuFill
+                class="menu-icon"
+                onClick={() => {
+                  setDialog(!dialog())
+                }}
+              />
+            </div>
+          </h1>
+          {pages[0].length > 25 && (
+            <div class="filter">
+              <For each={pages}>
+                {(page: any, index: any) => (
                   <div
-                    class={`episode ${props.fillerInfo?.[episode]?.filler ? 'filler' : ''}`}
                     onClick={() => {
-                      setPlayingEpisode(props.episodeInfo[episode])
-                      setShowPlayer(true)
+                      setFilter(index)
                     }}
+                    class={`${filter() === index() ? 'selected' : ''}`}
                   >
-                    {props.episodeInfo[episode].image ? (
-                      <img src={props.episodeInfo[episode].image} alt="" class="image" />
-                    ) : (
-                      <img src={props.animeInfo.coverImage.large} alt="" class="image" />
-                    )}
-                    <div class="content">
-                      <div class="episode-title">
-                        {props.episodeInfo[episode].episode}.{' '}
-                        {props.episodeInfo[episode]?.title?.en ||
-                          'Episode ' + props.episodeInfo[episode].episode}
-                      </div>
-                      <div class="summary">{props.episodeInfo[episode].summary}</div>
-                      <div class="tiny-details">
-                        {props.episodeInfo[episode].length ? (
-                          <div class="episode-length">{props.episodeInfo[episode].length}m</div>
-                        ) : null}
-                        <div class="episode-date">
-                          {sinceDate(new Date(props.episodeInfo[episode].airDate))}
-                        </div>
-                        <div class="filler">
-                          {props.fillerInfo?.[episode]?.filler ? 'Filler' : ''}
-                        </div>
-                      </div>
-                    </div>
+                    {`${page[0] + 1} - ${page[page.length - 1] + 1}`}
                   </div>
                 )}
               </For>
             </div>
+          )}
+
+          <div class={`list ${layout()} `}>
+            <For each={pages[filter()]}>
+              {(episode) => (
+                <div
+                  class={`episode ${props.fillerInfo?.[episode]?.filler ? 'filler' : ''}`}
+                  onClick={() => {
+                    setPlayingEpisode(props.episodeInfo?.[episode] || episode)
+                    setShowPlayer(true)
+                  }}
+                >
+                  {props.episodeInfo?.[episode]?.image ? (
+                    <img src={props.episodeInfo?.[episode].image} alt="" class="image" />
+                  ) : (
+                    <img src={props.animeInfo.coverImage.large} alt="" class="image" />
+                  )}
+                  <div class="content">
+                    <div class="episode-title">
+                      {episode + 1}.{' '}
+                      {props.episodeInfo?.[episode]?.title?.en || 'Episode ' + `${episode + 1}`}
+                    </div>
+                    <div class="summary">{props.episodeInfo?.[episode]?.summary}</div>
+                    <div class="tiny-details">
+                      {props.episodeInfo?.[episode]?.length ? (
+                        <div class="episode-length">{props.episodeInfo?.[episode]?.length}m</div>
+                      ) : null}
+                      <div class="episode-date">
+                        {sinceDate(new Date(props.episodeInfo?.[episode]?.airDate))}
+                      </div>
+                      <div class="filler">
+                        {props.fillerInfo?.[episode]?.filler ? 'Filler' : ''}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </For>
           </div>
-        )}
-      </Show>
+        </div>
+      )}
     </>
   )
 }

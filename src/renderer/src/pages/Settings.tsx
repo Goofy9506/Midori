@@ -11,11 +11,15 @@ const Settings: Component = () => {
   const [preferredPlaybackSpeed, setPreferredPlaybackSpeed] = createSignal<string>('1')
   const [loadTimeStamps, setLoadTimeStamps] = createSignal<boolean>(false)
   const [autoSkipOpEd, setAutoSkipOpEd] = createSignal<boolean>(false)
+  const [autoComplete, setAutoComplete] = createSignal<boolean>(false)
+  const [logged, setLogged] = createSignal<boolean>(false)
 
   const dataSetup = async () => {
     setPreferredAudioLanguage(await STORAGE.getAudioLanguage())
     setLoadTimeStamps(await STORAGE.getLoadTimeStamps())
     setAutoSkipOpEd(await STORAGE.getSkipOPED())
+    setAutoComplete(await STORAGE.getAutoUpdate())
+    setLogged(await STORAGE.getLogged())
   }
 
   onMount(dataSetup)
@@ -144,6 +148,33 @@ const Settings: Component = () => {
                           onClick={() => {
                             setAutoSkipOpEd(false)
                             STORAGE.set('SkipOPED', false)
+                          }}
+                        >
+                          No
+                        </div>
+                      </div>
+                    </div>
+                    <div class="settings-item">
+                      <div class="settings-item-title">
+                        Auto Complete Episodes <p> (Requires Anilist Login)</p>
+                      </div>
+                      <div class="select">
+                        <div
+                          class={`select-button ${autoComplete() ? 'active' : ''}`}
+                          onClick={() => {
+                            if (logged()) {
+                              setAutoComplete(true)
+                              STORAGE.set('AutoUpdate', true)
+                            }
+                          }}
+                        >
+                          Yes
+                        </div>
+                        <div
+                          class={`select-button ${!autoComplete() ? 'active' : ''}`}
+                          onClick={() => {
+                            setAutoComplete(false)
+                            STORAGE.set('AutoUpdate', false)
                           }}
                         >
                           No

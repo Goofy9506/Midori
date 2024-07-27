@@ -35,7 +35,7 @@ import { STORAGE } from '@renderer/utils/Storage'
 export const [defaultLanguage, setDefaultLanguage] = createSignal<string>('English')
 export const [isFullscreen, setIsFullscreen] = createSignal<boolean>(false)
 const [settingsOpen, setSettingsOpen] = createSignal<boolean>(false)
-const [showed, setShowed] = createSignal<boolean>(true)
+export const [showed, setShowed] = createSignal<boolean>(true)
 export let volume: number = await STORAGE.getVolume()
 export let skipEnding: HTMLDivElement | undefined
 export let skipIntro: HTMLDivElement | undefined
@@ -92,7 +92,7 @@ interface PlayerProps {
 
 const Player: Component<PlayerProps> = (props) => {
   const Handler = new AnimeHandler(
-    props.episode.episode,
+    props.episode.episode || props.episode + 1,
     props.animeInfo,
     props.subOrDub,
     props.episodeData

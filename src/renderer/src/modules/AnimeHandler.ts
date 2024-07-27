@@ -16,6 +16,7 @@ import { createSignal } from 'solid-js'
 import Notify from './Notify'
 import { setAnimeProgress, setAnimeStatus } from '@renderer/api/Anilist/actions'
 import AniSkip from '@renderer/api/AniSkip/actions'
+import { animeInfo, setAnimeInfo } from '@renderer/App'
 
 export const [aniSkipError, setAniSkipError] = createSignal<boolean>(false)
 export const [aniSkipOnce, setAniSkipOnce] = createSignal<boolean>(false)
@@ -108,7 +109,7 @@ export default class AnimeHandler {
     const episodeData = await STORAGE.getEpisodeProgress()
 
     if (episodeData === undefined) {
-      STORAGE.set('EpisodeProgress', {})
+      STORAGE.set('EpisodeProgress', [])
     }
 
     const existingEpisodeIndex = episodeData.findIndex(
@@ -166,7 +167,7 @@ export default class AnimeHandler {
    * If a video element exists, sets its current time to 0. Detaches and removes the media element if it exists in the Hls data.
    */
   private resetVideoSource = () => {
-    setEpisodeTitle(this.episodeData[episodeNumber() - 1].title.en)
+    setEpisodeTitle(this.episodeData[episodeNumber() - 1]?.title?.en || '')
     setVideoTime('00:00')
     setBufferedBar('0%')
     setProgressBar('0%')
@@ -408,6 +409,9 @@ export default class AnimeHandler {
   public closeVideoSource = async (close: () => void) => {
     document.removeEventListener('keydown', this.keybindHandler)
     const autoUpdate = await STORAGE.getAutoUpdate()
+    if (autoUpdate === undefined) {
+      STORAGE.set('AutoUpdate', false)
+    }
     if (this.hlsData.media) {
       this.hlsData.detachMedia()
       this.hlsData.media?.remove()
@@ -450,6 +454,9 @@ export default class AnimeHandler {
    */
   public episodeChange = async (arithmetic: number) => {
     const autoUpdate = await STORAGE.getAutoUpdate()
+    if (autoUpdate === undefined) {
+      STORAGE.set('AutoUpdate', false)
+    }
     const episodeInfo = this.animeInfo.nextAiringEpisode
       ? this.animeInfo.nextAiringEpisode?.episode - 1
       : this.animeInfo.episodes
@@ -466,6 +473,9 @@ export default class AnimeHandler {
   public videoTimeUpdate = async () => {
     if (!video) return
     const loadTimeStamps = await STORAGE.getLoadTimeStamps()
+    if (loadTimeStamps === undefined) {
+      STORAGE.set('LoadTimeStamps', false)
+    }
     if (video.readyState === 4) {
       setBufferedBar(`${(video?.buffered?.end(0) / (video?.duration ?? 0)) * 100}%`)
     }
@@ -569,6 +579,23 @@ export default class AnimeHandler {
       default:
         setAnimeStatus(this.animeInfo.id, 'CURRENT', episodeNumber())
         break
+    }
+    const D = animeInfo()
+    if (D) {
+      D.lists.forEach((element: any) => {
+        if (element.status === 'CURRENT') {
+          const existingEpisodeIndex = element.entries.findIndex(
+            (item: any) => item.mediaId === this.animeInfo.id
+          )
+          element.entries[existingEpisodeIndex] = {
+            ...element.entries[existingEpisodeIndex],
+            progress: Number(episodeNumber())
+          }
+          element.entries.unshift(element.entries[existingEpisodeIndex])
+          element.entries.splice(existingEpisodeIndex, 1)
+          setAnimeInfo(D)
+        }
+      })
     }
   }
 

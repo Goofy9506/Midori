@@ -355,7 +355,13 @@ export const setAnimeStatus = async (
   await makeRequest(METHOD, GRAPH_QL_URL, headers, options)
 }
 
-export const getTrending = async (type: string, season: string, year: number) => {
+export const getTrending = async (
+  sort: string,
+  type: string,
+  countryOfOrigin?: string,
+  season?: string,
+  year?: number
+) => {
   const headers = {
     'Content-Type': 'application/json',
     Accept: 'application/json'
@@ -363,13 +369,13 @@ export const getTrending = async (type: string, season: string, year: number) =>
 
   const query = `
   {
-      Page(page: 1, perPage: 20) {
+      Page(page: 1, perPage: 50) {
           pageInfo {
               total
               currentPage
               hasNextPage
           }
-          media(sort: TRENDING_DESC, type: ${type}, season: ${season}, seasonYear: ${year}) {
+          media(sort: ${sort}, type: ${type} ${countryOfOrigin ? `, countryOfOrigin: ${countryOfOrigin}` : ''}${season ? `, season: ${season}` : ''}${year ? `, seasonYear: ${year}` : ''}) {
               ${MEDIA_DATA}
           }
       }
@@ -421,6 +427,32 @@ export const getTopRatedAnime = async () => {
       total
     }
     media(sort: SCORE_DESC, type: ANIME) {
+      ${MEDIA_DATA}
+    }
+  }
+}
+
+`
+
+  const options = getOptions(query)
+  const response = await makeRequest(METHOD, GRAPH_QL_URL, headers, options)
+  return response.data.Page.media
+}
+
+export const getPopularAnime = async () => {
+  const headers = {
+    'Content-Type': 'application/json',
+    Accept: 'application/json'
+  }
+
+  const query = `
+{
+  Page(page: 1, perPage: 50) {
+    pageInfo {
+      hasNextPage
+      total
+    }
+    media(sort: POPULARITY_DESC, type: ANIME) {
       ${MEDIA_DATA}
     }
   }

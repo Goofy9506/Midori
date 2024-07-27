@@ -5,6 +5,7 @@ import Sidebar from './components/Sidebar'
 import Titlebar from './components/Titlebar'
 import { StorageProvider } from './hooks/Storage'
 import {
+  getPopularAnime,
   getTopRatedAnime,
   getTrending,
   getTrendingMovies,
@@ -14,11 +15,14 @@ import {
   getUserLists
 } from './api/Anilist/actions'
 
-export const [mangaInfo, setMangaInfo] = createSignal<any>(null)
-export const [animeInfo, setAnimeInfo] = createSignal<any>(null)
-export const [trendingAnimeInfo, setTrendingAnimeInfo] = createSignal<any>(null)
+export const [mangaInfo, setMangaInfo] = createSignal<any>()
+export const [animeInfo, setAnimeInfo] = createSignal<any>()
+export const [trendingAnimeInfo, setTrendingAnimeInfo] = createSignal<any>()
+export const [trendingMangaInfo, setTrendingMangaInfo] = createSignal<any>()
+export const [trendingManhwaInfo, setTrendingManhwaInfo] = createSignal<any>()
 export const [trendingMovies, setTrendingMovies] = createSignal<any>(null)
 export const [topRatedAnime, setTopRatedAnime] = createSignal<any>(null)
+export const [popularAnime, setPopularAnime] = createSignal<any>(null)
 export const [updatedAnimeInfo, setUpdatedAnimeInfo] = createSignal<any>(null)
 
 const App: Component = (props: ComponentProps<'div'>) => {
@@ -26,16 +30,10 @@ const App: Component = (props: ComponentProps<'div'>) => {
 
   createEffect(() => {
     const getData = async () => {
-      setAvatar(await getUserAvatar())
-    }
-    getData()
-  })
-
-  createEffect(() => {
-    const getData = async () => {
       const id = await getUserId()
       const animeLists = await getUserLists(id, 'ANIME')
       const mangaLists = await getUserLists(id, 'MANGA')
+      setAvatar(await getUserAvatar())
       setAnimeInfo(animeLists)
       setMangaInfo(mangaLists)
     }
@@ -46,9 +44,14 @@ const App: Component = (props: ComponentProps<'div'>) => {
   const season = ['WINTER', 'SPRING', 'SUMMER', 'FALL'][getSeason(new Date())]
   createEffect(() => {
     const getData = async () => {
-      setTrendingAnimeInfo(await getTrending('ANIME', season, new Date().getFullYear()))
+      setTrendingAnimeInfo(
+        await getTrending('TRENDING_DESC', 'ANIME', 'JP', season, new Date().getFullYear())
+      )
+      setTrendingMangaInfo(await getTrending('POPULARITY_DESC', 'MANGA', 'JP'))
+      setTrendingManhwaInfo(await getTrending('POPULARITY_DESC', 'MANGA', 'KR'))
       setTopRatedAnime(await getTopRatedAnime())
       setTrendingMovies(await getTrendingMovies())
+      setPopularAnime(await getPopularAnime())
       setUpdatedAnimeInfo(await getUpdatedAnime())
     }
     getData()

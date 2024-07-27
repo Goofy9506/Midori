@@ -1,5 +1,10 @@
 import { createEffect, createSignal, type Component } from 'solid-js'
-import { RiBuildingsHome2Fill, RiMediaClapperboardFill, RiUserFacesUser3Fill } from 'solid-icons/ri'
+import {
+  RiBuildingsHome2Fill,
+  RiDocumentBook2Fill,
+  RiMediaClapperboardFill,
+  RiUserFacesUser3Fill
+} from 'solid-icons/ri'
 
 import { A, useLocation } from '@solidjs/router'
 import { useStorageContext } from '@renderer/hooks/Storage'
@@ -24,6 +29,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
 
   if (href === '/home') setActive(1)
   if (href === '/anime') setActive(2)
+  if (href === '/manga') setActive(3)
 
   return (
     <div class="sidebar">
@@ -41,6 +47,13 @@ const Sidebar: Component<SidebarProps> = (props) => {
           onClick={() => setActive(2)}
         >
           <RiMediaClapperboardFill />
+        </A>
+        <A
+          href="/manga"
+          class={active() === 3 ? 'sidebar-link active' : 'sidebar-link'}
+          onClick={() => setActive(3)}
+        >
+          <RiDocumentBook2Fill />
         </A>
       </div>
       <div class="bottom">

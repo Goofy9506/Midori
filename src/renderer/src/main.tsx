@@ -8,6 +8,7 @@ import AuthCallback from './pages/Callback'
 import Info from './pages/Info'
 import Anime from './pages/Anime'
 import Settings from './pages/Settings'
+import Manga from './pages/Manga'
 
 const root = document.getElementById('app')
 
@@ -24,6 +25,7 @@ render(
       <Route path="/auth/callback" component={AuthCallback} />
       <Route path="/info/:id" component={Info} />
       <Route path="/anime" component={Anime} />
+      <Route path="/manga" component={Manga} />
       <Route path="/settings" component={Settings} />
     </Router>
   ),

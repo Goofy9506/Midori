@@ -67,6 +67,7 @@
     position: absolute;
     color: var(--font-color-1);
     transition: 0.2s ease-in-out;
+    background-color: #0000008a;
 
     &.showed {
       opacity: 100;
