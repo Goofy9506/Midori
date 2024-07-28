@@ -43,6 +43,7 @@ const Anime: Component = () => {
     const mediaArray: any[] = []
     updatedAnimeInfo()?.forEach((media: any) => {
       if (media.media.isAdult) return
+      if (media.media.countryOfOrigin !== 'JP') return
       mediaArray.push(media)
     })
     setUpdateAnime(mediaArray)
@@ -52,6 +53,7 @@ const Anime: Component = () => {
     const mediaArray: any[] = []
     trendingMovies()?.forEach((media: any) => {
       if (media.isAdult) return
+      if (media.countryOfOrigin !== 'JP') return
       mediaArray.push(media)
     })
     setUpdateMovies(mediaArray)
@@ -61,6 +63,7 @@ const Anime: Component = () => {
     const mediaArray: any[] = []
     topRatedAnime()?.forEach((media: any) => {
       if (media.isAdult) return
+      if (media.countryOfOrigin !== 'JP') return
       mediaArray.push(media)
     })
     setUpdateTopRated(mediaArray)
@@ -70,6 +73,7 @@ const Anime: Component = () => {
     const mediaArray: any[] = []
     popularAnime()?.forEach((media: any) => {
       if (media.isAdult) return
+      if (media.countryOfOrigin !== 'JP') return
       mediaArray.push(media)
     })
     setUpdatePopular(mediaArray)

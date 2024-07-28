@@ -216,7 +216,7 @@ export default class AnimeHandler {
   private retrieveZoro = async () => {
     const zoro = new Zoro()
     const language = await STORAGE.getAudioLanguage()
-    const titles = await this.getExtraTitles()
+    const titles = this.getExtraTitles()
     for (const title of titles) {
       const searchResult = await zoro.search(title)
       const result = searchResult.results.find(
@@ -248,7 +248,6 @@ export default class AnimeHandler {
         } else {
           episodeId = animeData.episodes[episodeNumber() - 1].id
         }
-
         const source = await zoro.videoSourceList(episodeId)
         if (source) {
           const currentSource = source.sources[0].url
@@ -257,6 +256,18 @@ export default class AnimeHandler {
           }
           if (currentSource) {
             return currentSource
+          }
+        } else {
+          episodeId = animeData.episodes[episodeNumber() - 1].id.replace(/\$both/, `$sub`)
+          const source2 = await zoro.videoSourceList(episodeId)
+          if (source2) {
+            const currentSource = source2.sources[0].url
+            if (episodeId.includes('$sub')) {
+              this.getSubtitles(source2.subtitles)
+            }
+            if (currentSource) {
+              return currentSource
+            }
           }
         }
       }
@@ -565,7 +576,7 @@ export default class AnimeHandler {
    */
   public saveToAnilist = async () => {
     if (!video) return
-    if (episodeNumber() < this.animeInfo.mediaListEntry?.progress) return
+    if (!this.animeInfo) if (episodeNumber() < this.animeInfo.mediaListEntry.progress) return
     if (video.currentTime < video.duration / 2) return
     const status = this.animeInfo.mediaListEntry?.status
     switch (status) {
@@ -580,6 +591,7 @@ export default class AnimeHandler {
         setAnimeStatus(this.animeInfo.id, 'CURRENT', episodeNumber())
         break
     }
+    this.animeInfo.mediaListEntry.progress = episodeNumber()
     const D = animeInfo()
     if (D) {
       D.lists.forEach((element: any) => {
@@ -587,12 +599,12 @@ export default class AnimeHandler {
           const existingEpisodeIndex = element.entries.findIndex(
             (item: any) => item.mediaId === this.animeInfo.id
           )
-          element.entries[existingEpisodeIndex] = {
+          const e = {
             ...element.entries[existingEpisodeIndex],
             progress: Number(episodeNumber())
           }
-          element.entries.unshift(element.entries[existingEpisodeIndex])
           element.entries.splice(existingEpisodeIndex, 1)
+          element.entries.unshift(e)
           setAnimeInfo(D)
         }
       })
