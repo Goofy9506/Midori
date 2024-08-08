@@ -1,5 +1,5 @@
 import { createEffect, createSignal, type Component } from 'solid-js'
-import { RiBuildingsHome2Fill, RiMediaClapperboardFill, RiUserFacesUser3Fill } from 'solid-icons/ri'
+import { RiBuildingsHome2Fill, RiMediaClapperboardFill, RiSystemSettings3Fill, RiUserFacesUser3Fill } from 'solid-icons/ri'
 
 import { A, useLocation } from '@solidjs/router'
 import { useStorageContext } from '@renderer/hooks/Storage'
@@ -49,14 +49,19 @@ const Sidebar: Component<SidebarProps> = (props) => {
             <img src={avatar()} alt="avatar" />
           </A>
         ) : (
-          <div
-            class="not-logged-in"
-            onClick={() => {
-              window.open(`${authUrl}`, `_self`)
-            }}
-          >
-            <RiUserFacesUser3Fill />
-          </div>
+          <>
+            <A href="/settings" class="sidebar-link" onClick={() => setActive(3)}>
+              <RiSystemSettings3Fill />
+            </A>
+            <div
+              class="not-logged-in"
+              onClick={() => {
+                window.open(`${authUrl}`, `_self`)
+              }}
+            >
+              <RiUserFacesUser3Fill />
+            </div>
+          </>
         )}
       </div>
     </div>

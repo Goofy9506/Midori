@@ -41,7 +41,6 @@ export class QLoader {
       baseURL: this.ANILIST_URL,
       ...axiosConfig,
       headers: {
-        Authorization: 'Bearer ' + this.TOKEN,
         ...axiosConfig.headers
       }
     })
@@ -68,6 +67,9 @@ export class QLoader {
   public getViewer = async () => {
     try {
       const response = await this.AnilistInstance({
+        headers: {
+          Authorization: 'Bearer ' + this.TOKEN
+        },
         data: JSON.stringify({
           query: ViewerId,
           variables: {}
@@ -82,6 +84,9 @@ export class QLoader {
   public getViewerId = async () => {
     try {
       const response = await this.AnilistInstance({
+        headers: {
+          Authorization: 'Bearer ' + this.TOKEN
+        },
         data: JSON.stringify({
           query: ViewerId,
           variables: {}
@@ -96,6 +101,9 @@ export class QLoader {
   public getViewerList = async (type: MediaType, id?: number) => {
     try {
       const response = await this.AnilistInstance({
+        headers: {
+          Authorization: 'Bearer ' + this.TOKEN
+        },
         data: JSON.stringify({
           query: ViewerList,
           variables: {
@@ -249,6 +257,9 @@ export class QLoader {
   public setAnimeProgress = async (id: number, progress: number) => {
     try {
       await this.AnilistInstance({
+        headers: {
+          Authorization: 'Bearer ' + this.TOKEN
+        },
         data: JSON.stringify({
           query: AnimeProgress,
           variables: {
@@ -270,6 +281,9 @@ export class QLoader {
   ) => {
     try {
       await this.AnilistInstance({
+        headers: {
+          Authorization: 'Bearer ' + this.TOKEN
+        },
         data: JSON.stringify({
           query: AnimeStatus,
           variables: {

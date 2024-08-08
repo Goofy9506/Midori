@@ -25,10 +25,13 @@ const App: Component = (props: ComponentProps<'div'>) => {
   createEffect(() => {
     // Gets the user's data && sets the avatar && sets the color theme
     ;(async () => {
-      const viewer = await QLoad.getViewer()
-      setAvatar(viewer.avatar.large ? viewer.avatar.large : viewer.avatar.medium)
-      setAnimeInfo(await QLoad.getViewerList('ANIME', viewer.id))
       getColorTheme(await ColorTheme)
+
+      if (await STORAGE.getLogged()) {
+        const viewer = await QLoad.getViewer()
+        setAvatar(viewer.avatar.large ? viewer.avatar.large : viewer.avatar.medium)
+        setAnimeInfo(await QLoad.getViewerList('ANIME', viewer.id))
+      }
     })()
   })
 
