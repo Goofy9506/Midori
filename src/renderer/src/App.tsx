@@ -4,22 +4,12 @@ import './styles/App.scss'
 import Sidebar from './components/Sidebar'
 import Titlebar from './components/Titlebar'
 import { StorageProvider } from './hooks/Storage'
-import {
-  getPopularAnime,
-  getTopRatedAnime,
-  getTrending,
-  getTrendingMovies,
-  getUpdatedAnime,
-  getUserAvatar,
-  getUserId,
-  getUserLists
-} from './api/Anilist/actions'
+import { STORAGE } from './utils/Storage'
 
-export const [mangaInfo, setMangaInfo] = createSignal<any>()
+import { QLoader } from './services/anilist/QLoader'
+
 export const [animeInfo, setAnimeInfo] = createSignal<any>()
-export const [trendingAnimeInfo, setTrendingAnimeInfo] = createSignal<any>()
-export const [trendingMangaInfo, setTrendingMangaInfo] = createSignal<any>()
-export const [trendingManhwaInfo, setTrendingManhwaInfo] = createSignal<any>()
+export const [trendingAnimeInfo, setTrendingAnimeInfo] = createSignal<any>(null)
 export const [trendingMovies, setTrendingMovies] = createSignal<any>(null)
 export const [topRatedAnime, setTopRatedAnime] = createSignal<any>(null)
 export const [popularAnime, setPopularAnime] = createSignal<any>(null)
@@ -27,34 +17,41 @@ export const [updatedAnimeInfo, setUpdatedAnimeInfo] = createSignal<any>(null)
 
 const App: Component = (props: ComponentProps<'div'>) => {
   const [avatar, setAvatar] = createSignal<string>('')
+  const QLoad = new QLoader()
 
-  createEffect(() => {
-    const getData = async () => {
-      const id = await getUserId()
-      const animeLists = await getUserLists(id, 'ANIME')
-      const mangaLists = await getUserLists(id, 'MANGA')
-      setAvatar(await getUserAvatar())
-      setAnimeInfo(animeLists)
-      setMangaInfo(mangaLists)
+  const defaultSettings = {
+    EpisodeProgress: [],
+    Volume: 1,
+    AutoUpdate: false,
+    AudioLanguage: 'ja',
+    SkipOPED: false,
+    AutoPlay: true,
+    LoadTimeStamps: false
+  }
+
+  Object.entries(defaultSettings).forEach(([key, value]) => {
+    if (STORAGE[`get${key}`]() === undefined) {
+      STORAGE.set(key as keyof typeof defaultSettings, value)
     }
-    getData()
   })
 
-  const getSeason = (d) => Math.floor((d.getMonth() / 12) * 4) % 4
-  const season = ['WINTER', 'SPRING', 'SUMMER', 'FALL'][getSeason(new Date())]
   createEffect(() => {
-    const getData = async () => {
-      setTrendingAnimeInfo(
-        await getTrending('TRENDING_DESC', 'ANIME', 'JP', season, new Date().getFullYear())
-      )
-      setTrendingMangaInfo(await getTrending('POPULARITY_DESC', 'MANGA', 'JP'))
-      setTrendingManhwaInfo(await getTrending('POPULARITY_DESC', 'MANGA', 'KR'))
-      setTopRatedAnime(await getTopRatedAnime())
-      setTrendingMovies(await getTrendingMovies())
-      setPopularAnime(await getPopularAnime())
-      setUpdatedAnimeInfo(await getUpdatedAnime())
-    }
-    getData()
+    // Gets the user's data && sets the avatar
+    ;(async () => {
+      const viewer = await QLoad.getViewer()
+      setAvatar(viewer.avatar.large ? viewer.avatar.large : viewer.avatar.medium)
+      setAnimeInfo(await QLoad.getViewerList('ANIME', viewer.id))
+    })()
+  })
+
+  createEffect(() => {
+    ;(async () => {
+      setTrendingAnimeInfo(await QLoad.getTrending('ANIME', 'TV'))
+      setTrendingMovies(await QLoad.getTrending('ANIME', 'MOVIE', null, null))
+      setTopRatedAnime(await QLoad.getTopRated('ANIME'))
+      setPopularAnime(await QLoad.getPopular('ANIME'))
+      setUpdatedAnimeInfo(await QLoad.getRecentlyUpdated())
+    })()
   })
 
   return (

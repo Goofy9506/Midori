@@ -2,8 +2,11 @@ import axios from 'axios'
 import crypto from 'crypto'
 
 export default class MegaCloud {
-  UserAgent =
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36'
+  private AXIOS_DEFAULT = axios.create({
+    baseURL: 'https://megacloud.tv',
+    method: 'GET',
+    timeout: 10000
+  })
 
   public videosFromUrl = async (url: URL) => {
     const result: {
@@ -22,15 +25,14 @@ export default class MegaCloud {
     }
 
     try {
-      const { data: srcsData } = await axios.get<any>(
-        'https://megacloud.tv/embed-2/ajax/e-1/getSources?id='.concat(videoId),
-        {
-          headers: {
-            Accept: '*/*',
-            'X-Requested-With': 'XMLHttpRequest'
-          }
+      const { data: srcsData } = await this.AXIOS_DEFAULT({
+        url: `/embed-2/ajax/e-1/getSources?id=${videoId}`,
+        headers: {
+          Accept: '*/*',
+          'X-Requested-With': 'XMLHttpRequest'
         }
-      )
+      })
+
       if (!srcsData) {
         throw new Error('Url may have an invalid video id')
       }
@@ -51,9 +53,9 @@ export default class MegaCloud {
         return result
       }
 
-      const { data } = await axios.get(
-        'https://megacloud.tv/js/player/a/prod/e1-player.min.js?v='.concat(Date.now().toString())
-      )
+      const { data } = await this.AXIOS_DEFAULT({
+        url: `/js/player/a/prod/e1-player.min.js?v=${Date.now().toString()}`
+      })
 
       const text = data
       if (!text) throw new Error("Couldn't fetch script to decrypt resource")

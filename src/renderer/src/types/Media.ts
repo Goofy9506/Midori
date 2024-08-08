@@ -3,7 +3,7 @@ export type Episode = {
   link?: string | null
   title?: string | null
   desc?: string | null
-  thumb?: string | null
+  thumb?: string
   filler: boolean | null
   maxLength?: number | null
 }
@@ -13,67 +13,42 @@ export type Studio = {
   name: string
 }
 
-type Author = {
-  id: number
-  name: string
-  image: string
-  role: string
-}
-
 export type Anime = {
-  totalEpisodes?: number
-  episodeDuration?: number
-  season?: string
-  seasonYear?: string
+  id: number
+  idMal: number
 
-  op?: string[]
-  ed?: string[]
+  name: string
+  nameRomaji: string
 
-  mainStudio?: Studio
-  author?: Author
+  cover: string
+  banner: string
 
-  youtube?: string
-  nextAiringEpisode?: number
-  nextAiringEpisodeTime?: string
+  totalEpisodes: number
+  currentEpisodes: number
+  episodeDuration: number
+  season: string
+  seasonYear: number
+  isAdult: boolean
+  userProgress: number
+  userStatus: string
+  userScore: number
+  status: string
+  format: string
+  // source: Anime
+  countryOfOrigin: string
+  meanScore: number
+  genres: string[]
+  description: string
+  synonyms: string[]
 
-  selectedEpisode?: string
-  episodes?: Episode[]
-  kitsuEpisodes?: Episode[]
-  fillerEpisodes?: Episode[]
+  timeTilAiring: Date
 
-  // constructor(
-  //   totalEpisodes?: number,
-  //   episodeDuration?: number,
-  //   season?: string,
-  //   seasonYear?: string,
-  //   op?: string[],
-  //   ed?: string[],
-  //   mainStudio?: Studio,
-  //   author?: Author,
-  //   youtube?: string,
-  //   nextAiringEpisode?: number,
-  //   nextAiringEpisodeTime?: string,
-  //   selectedEpisode?: string,
-  //   episodes?: Episode[],
-  //   kitsuEpisodes?: Episode[],
-  //   fillerEpisodes?: Episode[]
-  // ) {
-  //   this.totalEpisodes = totalEpisodes
-  //   this.episodeDuration = episodeDuration
-  //   this.season = season
-  //   this.seasonYear = seasonYear
-  //   this.op = op
-  //   this.ed = ed
-  //   this.mainStudio = mainStudio
-  //   this.author = author
-  //   this.youtube = youtube
-  //   this.nextAiringEpisode = nextAiringEpisode
-  //   this.nextAiringEpisodeTime = nextAiringEpisodeTime
-  //   this.selectedEpisode = selectedEpisode
-  //   this.episodes = episodes
-  //   this.kitsuEpisodes = kitsuEpisodes
-  //   this.fillerEpisodes = fillerEpisodes
-  // }
+  nextAiringEpisode: number
+  nextAiringEpisodeTime: string
+
+  relations: Relation[]
+  episodes: Episode[]
+  fillerEpisodes: Episode[]
 }
 
 export type Media = {
@@ -119,7 +94,7 @@ export type Media = {
   // staff: Staff[]
   // prequel: Media
   // sequel: Media
-  relations: Media[]
+  relations: Relation[]
 
   // constructor(anime: Anime, id: number, idMal: number, idKitsu: number) {
   //   this.anime = anime
@@ -153,4 +128,19 @@ export type Media = {
   //   // this.sequel = null
   //   this.relations = []
   // }
+}
+
+export type Relation = {
+  id: number
+  idMal: number
+  format: string
+  name: string
+  status: string
+  episodes: number
+  chapters: number
+  cover: string
+  startDate: Date
+  type: string
+  relation: string
+  meanScore: number
 }

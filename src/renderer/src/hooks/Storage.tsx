@@ -11,6 +11,7 @@ const StorageContext = createContext<StoreContextType>({
   AudioLanguage: STORE_SCHEMA.AudioLanguage.default,
   SkipOPED: STORE_SCHEMA.SkipOPED.default,
   LoadTimeStamps: STORE_SCHEMA.LoadTimeStamps.default,
+  AutoPlay: STORE_SCHEMA.AutoPlay.default,
   setStore: async () => {}
 })
 
@@ -29,6 +30,7 @@ export const useStorage = (): StoreContextType => {
   const [AnilistToken, setAnilistToken] = createSignal<string>(STORE_SCHEMA.AnilistToken)
   const [AutoUpdate, setAutoUpdate] = createSignal<boolean>(STORE_SCHEMA.AutoUpdate)
   const [SkipOPED, setSkipOPED] = createSignal<boolean>(STORE_SCHEMA.SkipOPED)
+  const [AutoPlay, setAutoPlay] = createSignal<boolean>(STORE_SCHEMA.AutoPlay)
   const [Logged, setLogged] = createSignal<boolean>(STORE_SCHEMA.Logged)
   const [Volume, setVolume] = createSignal<number>(STORE_SCHEMA.Volume)
 
@@ -43,6 +45,7 @@ export const useStorage = (): StoreContextType => {
     if (store.AudioLanguage !== AudioLanguage()) setAudioLanguage(store.AudioLanguage)
     if (store.AnilistToken !== AnilistToken()) setAnilistToken(store.AnilistToken)
     if (store.AutoUpdate !== AutoUpdate()) setAutoUpdate(store.AutoUpdate)
+    if (store.AutoPlay !== AutoPlay()) setAutoPlay(store.AutoPlay)
     if (store.SkipOPED !== SkipOPED()) setSkipOPED(store.SkipOPED)
     if (store.Logged !== Logged()) setLogged(store.Logged)
     if (store.Volume !== Volume()) setVolume(store.Volume)
@@ -83,6 +86,9 @@ export const useStorage = (): StoreContextType => {
       case 'LoadTimeStamps':
         setLoadTimeStamps(value)
         break
+      case 'AutoPlay':
+        setAutoPlay(value)
+        break
       default:
         break
     }
@@ -99,6 +105,7 @@ export const useStorage = (): StoreContextType => {
     AudioLanguage,
     SkipOPED,
     LoadTimeStamps,
+    AutoPlay,
     setStore
   }
 }

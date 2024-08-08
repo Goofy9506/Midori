@@ -2,6 +2,7 @@ import { STORAGE } from '@renderer/utils/Storage'
 import { createSignal, onMount, type Component } from 'solid-js'
 
 import '../styles/Settings.scss'
+import Notify from '@renderer/components/Notify'
 
 const Settings: Component = () => {
   const [settings, setSettings] = createSignal<string>('player')
@@ -12,6 +13,7 @@ const Settings: Component = () => {
   const [loadTimeStamps, setLoadTimeStamps] = createSignal<boolean>(false)
   const [autoSkipOpEd, setAutoSkipOpEd] = createSignal<boolean>(false)
   const [autoComplete, setAutoComplete] = createSignal<boolean>(false)
+  const [autoPlay, setAutoPlay] = createSignal<boolean>(true)
   const [logged, setLogged] = createSignal<boolean>(false)
 
   const dataSetup = async () => {
@@ -19,6 +21,7 @@ const Settings: Component = () => {
     setLoadTimeStamps(await STORAGE.getLoadTimeStamps())
     setAutoSkipOpEd(await STORAGE.getSkipOPED())
     setAutoComplete(await STORAGE.getAutoUpdate())
+    setAutoPlay(await STORAGE.getAutoPlay())
     setLogged(await STORAGE.getLogged())
   }
 
@@ -41,6 +44,25 @@ const Settings: Component = () => {
                 onClick={() => setSettings('interface')}
               >
                 Interface
+              </div>
+              <div
+                class="clear-progress"
+                onClick={() => {
+                  STORAGE.set('EpisodeProgress', [])
+                  new Notify().Alert('The episode progress data has been cleared!')
+                }}
+              >
+                Clear Watch Progress
+              </div>
+              <div
+                class="log-out"
+                onClick={() => {
+                  STORAGE.set('Logged', false)
+                  STORAGE.set('AnilistToken', '')
+                  new Notify().Alert('You have successfully logged out!')
+                }}
+              >
+                Logout
               </div>
             </div>
             <div class="right">
@@ -102,84 +124,72 @@ const Settings: Component = () => {
                     </div>
                     <div class="settings-item">
                       <div class="settings-item-title">Load Time Stamps</div>
-                      <div class="select">
-                        <div
-                          class={`select-button ${loadTimeStamps() ? 'active' : ''}`}
-                          onClick={() => {
-                            setLoadTimeStamps(true)
-                            STORAGE.set('LoadTimeStamps', true)
-                          }}
-                        >
-                          Yes
-                        </div>
-                        <div
-                          class={`select-button ${!loadTimeStamps() ? 'active' : ''}`}
-                          onClick={() => {
-                            setLoadTimeStamps(false)
-                            STORAGE.set('LoadTimeStamps', false)
-                            if (autoSkipOpEd()) {
-                              setAutoSkipOpEd(false)
-                              STORAGE.set('SkipOPED', false)
-                            }
-                          }}
-                        >
-                          No
-                        </div>
-                      </div>
+                      <select
+                        value={loadTimeStamps() ? 'enabled' : 'disabled'}
+                        onChange={(e) => {
+                          setLoadTimeStamps(e.target.value === 'enabled')
+                          STORAGE.set('LoadTimeStamps', e.target.value === 'enabled')
+                          autoSkipOpEd()
+                            ? (setAutoSkipOpEd(false), STORAGE.set('SkipOPED', false))
+                            : undefined
+                        }}
+                      >
+                        <option value="enabled" selected>
+                          Enabled
+                        </option>
+                        <option value="disabled">Disabled</option>
+                      </select>
+                    </div>
+                    <div class="settings-item">
+                      <div class="settings-item-title">Auto Play</div>
+                      <select
+                        value={autoPlay() ? 'enabled' : 'disabled'}
+                        onChange={(e) => {
+                          setAutoPlay(e.target.value === 'enabled')
+                          STORAGE.set('AutoPlay', e.target.value === 'enabled')
+                        }}
+                      >
+                        <option value="enabled" selected>
+                          Enabled
+                        </option>
+                        <option value="disabled">Disabled</option>
+                      </select>
                     </div>
                     <div class="settings-item">
                       <div class="settings-item-title">
                         Auto Skip OP / ED <p> (Requires Load Time Stamps to be enabled)</p>
                       </div>
-                      <div class="select">
-                        <div
-                          class={`select-button ${autoSkipOpEd() ? 'active' : ''}`}
-                          onClick={() => {
-                            if (loadTimeStamps()) {
-                              setAutoSkipOpEd(true)
-                              STORAGE.set('SkipOPED', true)
-                            }
-                          }}
-                        >
-                          Yes
-                        </div>
-                        <div
-                          class={`select-button ${!autoSkipOpEd() ? 'active' : ''}`}
-                          onClick={() => {
-                            setAutoSkipOpEd(false)
-                            STORAGE.set('SkipOPED', false)
-                          }}
-                        >
-                          No
-                        </div>
-                      </div>
+                      <select
+                        value={autoSkipOpEd() ? 'enabled' : 'disabled'}
+                        onChange={(e) => {
+                          setAutoSkipOpEd(e.target.value === 'enabled')
+                          STORAGE.set('SkipOPED', e.target.value === 'enabled')
+                        }}
+                      >
+                        <option value="enabled" selected>
+                          Enabled
+                        </option>
+                        <option value="disabled">Disabled</option>
+                      </select>
                     </div>
                     <div class="settings-item">
                       <div class="settings-item-title">
                         Auto Complete Episodes <p> (Requires Anilist Login)</p>
                       </div>
-                      <div class="select">
-                        <div
-                          class={`select-button ${autoComplete() ? 'active' : ''}`}
-                          onClick={() => {
-                            if (logged()) {
-                              setAutoComplete(true)
-                              STORAGE.set('AutoUpdate', true)
-                            }
-                          }}
-                        >
-                          Yes
-                        </div>
-                        <div
-                          class={`select-button ${!autoComplete() ? 'active' : ''}`}
-                          onClick={() => {
-                            setAutoComplete(false)
-                            STORAGE.set('AutoUpdate', false)
-                          }}
-                        >
-                          No
-                        </div>
-                      </div>
+                      <select
+                        value={autoComplete() ? 'enabled' : 'disabled'}
+                        onChange={(e) => {
+                          if (logged()) {
+                            setAutoComplete(e.target.value === 'enabled')
+                            STORAGE.set('AutoUpdate', e.target.value === 'enabled')
+                          }
+                        }}
+                      >
+                        <option value="enabled" selected>
+                          Enabled
+                        </option>
+                        <option value="disabled">Disabled</option>
+                      </select>
                     </div>
                   </div>
                 </>

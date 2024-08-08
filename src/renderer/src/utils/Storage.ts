@@ -47,6 +47,11 @@ const getLoadTimeStamps = async (): Promise<boolean> => {
   return loadtimestamps
 }
 
+const getAutoPlay = async (): Promise<boolean> => {
+  const autoplay = await ipcRenderer.invoke('getStoreValue', 'AutoPlay')
+  return autoplay
+}
+
 const set = async (key: StoreKeys, value: any): Promise<void> => {
   await ipcRenderer.invoke('setStoreValue', key, value)
 }
@@ -61,5 +66,6 @@ export const STORAGE = {
   getAudioLanguage,
   getSkipOPED,
   getLoadTimeStamps,
+  getAutoPlay,
   set
 }

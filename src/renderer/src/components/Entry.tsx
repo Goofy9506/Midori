@@ -1,9 +1,10 @@
+import { MediaList } from '@renderer/types/Anilist'
 import { A } from '@solidjs/router'
 import { RiMediaPlayFill } from 'solid-icons/ri'
-import { Show, type Component } from 'solid-js'
+import { type Component } from 'solid-js'
 
 interface Props {
-  media: any
+  media: MediaList
 }
 
 const statusToTest = (status: string) => {
@@ -23,75 +24,47 @@ const statusToTest = (status: string) => {
   }
 }
 
-// eslint-disable-next-line solid/no-destructure
-const Entry: Component<Props> = ({ media }) => {
+const Entry: Component<Props> = (props) => {
+  const renderMediaInfo = (media: any) => {
+    const { id, cover, status, name, nameRomaji, type, totalEpisodes, chapters, meanScore, idMal } =
+      media
+    const progress = media.userProgress || '~'
+    return (
+      <>
+        <A href={`/info/${id}?malId=${idMal}`}>
+          <div class={`entry ${media ? '' : 'skeleton'}`}>
+            <div class="cover" style={{ 'background-color': 'transparent' }}>
+              <RiMediaPlayFill class="play-icon" />
+              <div class="transition-cover" />
+              <img src={cover} alt="cover" />
+              <div class={`status ${status}`}>{statusToTest(status)}</div>
+            </div>
+            <div class="content">
+              <h2 class="title">{name ?? nameRomaji}</h2>
+              <div class="other-info">
+                <div class="episodes">
+                  {type === 'ANIME'
+                    ? `${progress} | ${totalEpisodes ?? '~'}`
+                    : `${progress} | ${chapters ?? '~'}`}
+                </div>
+                <div class="rating">{meanScore === 0 ? `0 / 10` : `${meanScore / 10} / 10`}</div>
+              </div>
+            </div>
+          </div>
+        </A>
+      </>
+    )
+  }
+
   return (
     <>
-      <Show when={media}>
-        {media.media ? (
-          <A href={`/info/${media?.media?.id}`}>
-            <div class={`entry ${media ? '' : 'skeleton'}`}>
-              <div class="cover" style={{ 'background-color': 'transparent' }}>
-                <RiMediaPlayFill class="play-icon" />
-                <div class="transition-cover" />
-                <img src={media?.media?.coverImage?.large} alt="cover" />
-                <div class={`status ${media?.media?.status}`}>
-                  {statusToTest(media?.media?.status)}
-                </div>
-              </div>
-              <div class="content">
-                <h2 class="title">{media?.media?.title?.english || media?.media?.title?.romaji}</h2>
-                <div class="other-info">
-                  {media && media?.media?.type === 'ANIME' ? (
-                    <div class="episodes">
-                      {media && `${media.progress || '~'} | ${media.media.episodes || '~'}`}
-                    </div>
-                  ) : (
-                    <div class="episodes">
-                      {media && `${media?.progress || '~'} | ${media?.media?.chapters || '~'}`}
-                    </div>
-                  )}
-                  <div class="rating">
-                    {media && media?.media?.meanScore === 0
-                      ? `0 / 10`
-                      : `${(media.media.meanScore as number) / 10} / 10`}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </A>
-        ) : (
-          <A href={`/info/${media?.id}`}>
-            <div class={`entry ${media ? '' : 'skeleton'}`}>
-              <div class="cover" style={{ 'background-color': 'transparent' }}>
-                <RiMediaPlayFill class="play-icon" />
-                <div class="transition-cover" />
-                <img src={media?.coverImage?.large} alt="cover" />
-                <div class={`status ${media?.status}`}>{statusToTest(media?.status)}</div>
-              </div>
-              <div class="content">
-                <h2 class="title">{media?.title?.english || media?.title?.romaji}</h2>
-                <div class="other-info">
-                  {media && media?.type === 'ANIME' ? (
-                    <div class="episodes">
-                      {media && `${media.progress || '~'} | ${media.episodes || '~'}`}
-                    </div>
-                  ) : (
-                    <div class="episodes">
-                      {media && `${media?.progress || '~'} | ${media?.chapters || '~'}`}
-                    </div>
-                  )}
-                  <div class="rating">
-                    {media && media?.meanScore === 0
-                      ? `0 / 10`
-                      : `${(media?.meanScore as number) / 10} / 10`}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </A>
-        )}
-      </Show>
+      {props.media ? (
+        renderMediaInfo(props.media)
+      ) : (
+        <div class="skeleton">
+          <div class="skeleton-cover" style={{ 'background-color': 'transparent' }} />
+        </div>
+      )}
     </>
   )
 }

@@ -178,6 +178,7 @@ a {
       .title {
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 2;
+        line-clamp: 2;
         color: $color_1;
         display: -webkit-box;
         float: left;
@@ -214,6 +215,13 @@ a {
       }
     }
   }
+}
+
+.skeleton {
+  width: 175px;
+  height: 262.5px;
+  border-radius: 6px;
+  box-shadow: inset 0 -50px 18px -22px #00000093;
 }
 .NOT_YET_RELEASED {
   font-size: 15px;

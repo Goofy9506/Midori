@@ -10,6 +10,7 @@ export type StoreKeys =
   | 'AudioLanguage'
   | 'SkipOPED'
   | 'LoadTimeStamps'
+  | 'AutoPlay'
 
 export type StoreContextType = {
   AnilistToken: Accessor<string>
@@ -20,6 +21,7 @@ export type StoreContextType = {
   AudioLanguage: Accessor<string>
   SkipOPED: Accessor<boolean>
   LoadTimeStamps: Accessor<boolean>
+  AutoPlay: Accessor<boolean>
   setStore: (key: StoreKeys, value: any) => Promise<void>
 }
 
@@ -55,6 +57,10 @@ export const STORE_SCHEMA: Record<StoreKeys, any> = {
   LoadTimeStamps: {
     type: 'boolean',
     default: false
+  },
+  AutoPlay: {
+    type: 'boolean',
+    default: true
   }
 }
 

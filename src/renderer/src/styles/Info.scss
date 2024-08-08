@@ -98,7 +98,7 @@
               }
             }
 
-            .play-now {
+            .button {
               color: #000;
               display: flex;
               font-weight: 400;
@@ -190,13 +190,13 @@
       display: flex;
       text-align: left;
       margin-left: 4.5%;
-      margin-top: 210px;
+      margin-top: 230px;
       flex-direction: column;
 
       h1 {
         margin: 0;
         margin-left: 5px;
-        font-size: 21px;
+        font-size: 23px;
         color: var(--font-color-1);
       }
 

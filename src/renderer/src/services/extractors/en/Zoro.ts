@@ -1,22 +1,21 @@
 import { CheerioAPI, load } from 'cheerio'
-import MegaCloud from '../../media/MegaCloud'
+import MegaCloud from '../media/MegaCloud'
 import axios from 'axios'
-import Notify from '@renderer/modules/Notify'
 
 export default class Zoro {
   private PREF_DOMAIN_DEFAULT = 'https://hianime.to'
-
-  baseUrl = this.PREF_DOMAIN_DEFAULT
-  UserAgent =
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36'
+  private baseUrl = this.PREF_DOMAIN_DEFAULT
+  private AXIOS_DEFAULT = axios.create({
+    baseURL: this.baseUrl,
+    method: 'GET',
+    timeout: 10000
+  })
 
   public search = (name: string, page: number = 1) => {
     if (0 >= page) {
       page = 1
     }
-    return this.scrapeCardPage(
-      `${this.baseUrl}/search?keyword=${decodeURIComponent(name)}&page=${page}`
-    )
+    return this.scrapeCardPage(`/search?keyword=${decodeURIComponent(name)}&page=${page}`)
   }
 
   public fetchAnimeInfo = async (id: string): Promise<any> => {
@@ -26,7 +25,7 @@ export default class Zoro {
         title: ''
       }
 
-      const { data } = await axios.get(`${this.baseUrl}/watch/${id}`)
+      const { data } = await this.AXIOS_DEFAULT({ url: `/watch/${id}` })
       const $ = load(data)
 
       const { mal_id, anilist_id } = JSON.parse($('#syncData').text())
@@ -77,14 +76,12 @@ export default class Zoro {
         info.subOrDub = 'both'
       }
 
-      const episodesAjax = await axios.get(
-        `${this.baseUrl}/ajax/v2/episode/list/${id.split('-').pop()}`,
-        {
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-          }
+      const episodesAjax = await this.AXIOS_DEFAULT({
+        url: `/ajax/v2/episode/list/${id.split('-').pop()}`,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
         }
-      )
+      })
 
       const $$ = load(episodesAjax.data.html)
 
@@ -118,39 +115,40 @@ export default class Zoro {
   }
 
   public videoSourceList = async (epUrl: string, serverUrl: string = 'vidstreaming') => {
-    const subOrDub: 'sub' | 'dub' = epUrl.split('$')?.pop() === 'dub' ? 'dub' : 'sub'
-    epUrl = `${this.baseUrl}/watch/${epUrl
-      .replace('$episode$', '?ep=')
-      .replace(/\$auto|\$sub|\$dub/gi, '')}`
+    const subOrDub: 'sub' | 'dub' = epUrl.endsWith('$dub') ? 'dub' : 'sub'
+    const newUrl = `${this.baseUrl}/watch/${epUrl.replace('$episode$', '?ep=').replace(/\$both|\$sub|\$dub/gi, '')}`
 
-    const { data } = await axios.get(
-      `${this.baseUrl}/ajax/v2/episode/servers?episodeId=${epUrl.split('?ep=')[1]}`
-    )
+    const { data } = await this.AXIOS_DEFAULT({
+      url: `/ajax/v2/episode/servers?episodeId=${newUrl.split('?ep=')[1]}`
+    })
 
     const $ = load(data.html)
 
-    let serverId = ''
+    let server
 
     switch (serverUrl) {
       case 'vidcloud':
-        serverId = this.retrieveServerId($, 1, subOrDub)
-        if (!serverId) throw new Error('RapidCloud not found')
+        server =
+          this.retrieveServerId($, 1, subOrDub) ??
+          (() => {
+            throw new Error('VidCloud not found')
+          })()
         break
       case 'vidstreaming':
-        serverId = this.retrieveServerId($, 4, subOrDub)
-        if (!serverId) {
-          new Notify().Alert('Video source was not found, trying Gogo source instead...')
-          return undefined
-          // throw new Error('Vidstreaming not found')
-        }
+        server = this.retrieveServerId($, 4, subOrDub)
         break
     }
 
+    const serverId = server.id
+    const language = server.language
+
     const {
       data: { link }
-    } = await axios.get(`${this.baseUrl}/ajax/v2/episode/sources?id=${serverId}`)
+    } = await this.AXIOS_DEFAULT({
+      url: `/ajax/v2/episode/sources?id=${serverId}`
+    })
 
-    return await this.videoSourceRequest(serverUrl, new URL(link))
+    return await { url: this.videoSourceRequest(serverUrl, new URL(link)), language }
   }
 
   private videoSourceRequest = async (serverName: string = 'vidstreaming', serverUrl: URL) => {
@@ -165,19 +163,26 @@ export default class Zoro {
   }
 
   private retrieveServerId = ($: any, index: number, subOrDub: 'sub' | 'dub') => {
-    const serverItem = $(`.ps_-block.ps_-block-sub.servers-${subOrDub} > .ps__-list .server-item`)
-      .filter((_, el) => $(el).attr('data-server-id') == `${index}`)
-      .first()
-    if (subOrDub === 'sub' && serverItem.length === 0) {
-      const serverItem = $(`.ps_-block.ps_-block-sub.servers-raw > .ps__-list .server-item`)
-        .filter((_, el) => $(el).attr('data-server-id') == `${index}`)
+    const getServerItem = (section: string) =>
+      $(`.ps_-block.ps_-block-sub.servers-${section} > .ps__-list .server-item`)
+        .filter((_: any, el: any) => $(el).attr('data-server-id') == `${index}`)
         .first()
-      return serverItem.attr('data-id')!
+
+    let language = subOrDub
+    let serverItem = getServerItem(subOrDub)
+    if (!serverItem.attr('data-id') && subOrDub === 'dub') {
+      serverItem = getServerItem('sub')
+      language = 'sub'
+    }
+    if (!serverItem.attr('data-id')) {
+      serverItem = getServerItem('raw')
+      language = 'sub'
+    }
+
+    if (serverItem.attr('data-id')) {
+      return { id: serverItem.attr('data-id')!, language }
     } else {
-      if (!serverItem) {
-        throw new Error('Server item with specified data-server-id not found')
-      }
-      return serverItem.attr('data-id')!
+      throw new Error('Server item with specified data-server-id not found')
     }
   }
 
@@ -195,7 +200,7 @@ export default class Zoro {
   }
 
   private scrapeCardPage = async (url: string): Promise<any> => {
-    if (!url.startsWith('https://') && !url.startsWith('http://')) {
+    if (!url.startsWith('/') || !url.startsWith('/search')) {
       throw new Error('Invalid URL format')
     }
 
@@ -206,7 +211,9 @@ export default class Zoro {
       results: []
     }
     try {
-      const { data } = await axios.get(url)
+      const { data } = await this.AXIOS_DEFAULT({
+        url: url
+      })
       const $ = load(data)
 
       const { currentPage, hasNextPage, totalPages } = this.parsePagination($)
@@ -255,11 +262,9 @@ export default class Zoro {
   }
 
   private scrapeCard = async ($: CheerioAPI): Promise<any[]> => {
-    const results: any[] = []
-    $('.flw-item').each((_i, ele) => {
-      const card = $(ele)
-      results.push(this.parseCard($, card))
-    })
+    const results: any[] = $('.flw-item')
+      .map((_i, ele) => this.parseCard($, $(ele)))
+      .get()
     return results
   }
 }

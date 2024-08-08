@@ -36,7 +36,7 @@ const Titlebar: Component = () => {
             }}
             class="action"
           >
-            {maximize() ? <RiMediaFullscreenLine /> : <RiMediaFullscreenExitLine />}
+            {!maximize() ? <RiMediaFullscreenLine /> : <RiMediaFullscreenExitLine />}
           </div>
           <div
             onClick={() => {

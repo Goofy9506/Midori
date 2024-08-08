@@ -1,10 +1,18 @@
 {
-  "name": "electron-solid",
-  "version": "1.0.0",
-  "description": "An Electron application with Solid and TypeScript",
+  "name": "midori",
+  "version": "0.0.1",
+  "description": "An anime streaming application meant for entertainment!",
   "main": "./out/main/index.js",
-  "author": "example.com",
-  "homepage": "https://electron-vite.org",
+  "author": "Goofy9506",
+  "license": "GPL-3.0-or-later",
+  "homepage": "https://github.com/goofy9506/midori",
+  "bugs": {
+    "url": "https://github.com/goofy9506/midori/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/goofy9506/midori"
+  },
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",

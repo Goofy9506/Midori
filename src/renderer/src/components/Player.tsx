@@ -10,9 +10,11 @@ import AnimeHandler, {
   bufferedBar,
   episodeNumber,
   episodeTitle,
+  formatTime,
   loading,
   playing,
   progressBar,
+  setPlaying,
   subtitles,
   videoTime
 } from '@renderer/modules/AnimeHandler'
@@ -22,6 +24,8 @@ import {
   RiMediaFullscreenExitFill,
   RiMediaFullscreenFill,
   RiMediaPauseFill,
+  RiMediaPictureInPicture2Fill,
+  RiMediaPictureInPictureExitFill,
   RiMediaPlayFill,
   RiMediaSkipBackFill,
   RiMediaSkipForwardFill,
@@ -31,35 +35,42 @@ import {
   RiSystemListSettingsFill
 } from 'solid-icons/ri'
 import { STORAGE } from '@renderer/utils/Storage'
+import { Anime } from '@renderer/types/Media'
 
 export const [defaultLanguage, setDefaultLanguage] = createSignal<string>('English')
+export const [showHoverTime, setShowHoverTime] = createSignal<boolean>(false)
 export const [isFullscreen, setIsFullscreen] = createSignal<boolean>(false)
-const [settingsOpen, setSettingsOpen] = createSignal<boolean>(false)
+export const [hoverTime, setHoverTime] = createSignal<string>('00:00')
 export const [showed, setShowed] = createSignal<boolean>(true)
+export const [offsetX, setOffsetX] = createSignal<number>(0)
+export const [PIP, setPIP] = createSignal<boolean>(false)
+const [settingsOpen, setSettingsOpen] = createSignal<boolean>(false)
 export let volume: number = await STORAGE.getVolume()
 export let skipEnding: HTMLDivElement | undefined
 export let skipIntro: HTMLDivElement | undefined
 export let video: HTMLVideoElement | undefined
 export let track: HTMLTrackElement | undefined
+export let timer: NodeJS.Timeout | undefined
 let sectionBar: HTMLDivElement | undefined
-let timer: NodeJS.Timeout | undefined
-let mouseDown: boolean = false
 
-// const calculateProgressTime = (
-//   event: MouseEvent & {
-//     currentTarget: HTMLDivElement
-//     target: Element
-//   }
-// ) => {
-//   if (!video?.duration || !progressSection) return
+const calculateProgressTime = (
+  event: MouseEvent & {
+    currentTarget: HTMLDivElement
+    target: Element
+  }
+) => {
+  if (!video?.duration || !sectionBar) return
 
-//   const timelineWidth = progressSection.clientWidth
-//   const newOffsetX = event.offsetX
-//   let newPercent = Math.floor((newOffsetX / timelineWidth) * video.duration)
-//   if (newPercent < 0) newPercent = 0
-//   if (newPercent > video.duration) newPercent = video.duration
-//   setEstTime(formatTime(newPercent))
-// }
+  const timelineWidth = sectionBar.clientWidth
+  const newOffsetX = event.offsetX
+  let newPercent = Math.floor((newOffsetX / timelineWidth) * video.duration)
+  if (newPercent < 0) newPercent = 0
+  if (newPercent > video.duration) newPercent = video.duration
+  const clampedOffsetX =
+    newOffsetX < 20 ? 20 : newOffsetX > timelineWidth - 20 ? timelineWidth - 20 : newOffsetX
+  setOffsetX(clampedOffsetX)
+  setHoverTime(formatTime(newPercent))
+}
 
 const Spinner: Component = () => {
   return (
@@ -83,26 +94,19 @@ const Spinner: Component = () => {
 }
 
 interface PlayerProps {
-  animeInfo: any
-  episodeData: any
+  animeInfo: Anime
   episode: any
   subOrDub: string
   onClose: () => void
 }
 
 const Player: Component<PlayerProps> = (props) => {
-  const Handler = new AnimeHandler(
-    props.episode.episode || props.episode + 1,
-    props.animeInfo,
-    props.subOrDub,
-    props.episodeData
-  )
+  const Handler = new AnimeHandler(Number(props.episode), props.animeInfo, props.subOrDub)
 
   Handler.loadVideoSource()
   setIsFullscreen(false)
 
   // Handler.getTimeStamps()
-
   return (
     <Portal mount={document.getElementById('midori-root') as HTMLElement}>
       <div class={`dialog ${settingsOpen() ? '' : 'hidden'}`}>
@@ -191,127 +195,161 @@ const Player: Component<PlayerProps> = (props) => {
       </div>
       <div class={`blur ${settingsOpen() ? '' : 'hidden'}`} />
       <div
-        class="player-container"
+        class={`player-container${isFullscreen() ? ' fullscreen' : ''}`}
         onMouseMove={() => {
           setShowed(true)
+          document.body.style.cursor = 'default'
           clearTimeout(timer)
-          timer = setTimeout(() => [setShowed(false)], 2000)
+          timer = setTimeout(() => [setShowed(false), (document.body.style.cursor = 'none')], 2000)
         }}
       >
         <div class={`controls ${showed() ? 'showed' : ''}`}>
-          <div class="exit">
-            <RiArrowsArrowLeftSLine onClick={() => Handler.closeVideoSource(props.onClose)} />
-            <div>
-              Episode {episodeNumber().toString()}: {episodeTitle()}
-              <p>{props.animeInfo.title.english}</p>
+          <div class="top-controls">
+            <div class="inner-controls">
+              <RiArrowsArrowLeftSLine
+                onClick={() => Handler.closeVideoSource(props.onClose)}
+                class="exit"
+              />
+              <div class="episode-info">
+                Episode {episodeNumber().toString()}: {episodeTitle()}
+                <p class="anime-name">{props.animeInfo.name}</p>
+              </div>
             </div>
           </div>
           <div class="mid-controls">
-            <span class="previous-episode" onClick={() => Handler.episodeChange(-1)}>
-              <RiMediaSkipBackFill />
-            </span>
-            <span class="play-pause">
-              {loading() ? (
-                <Spinner />
-              ) : !playing() ? (
-                <RiMediaPauseFill
-                  onClick={() => {
-                    Handler.playVideoSource()
-                  }}
-                />
-              ) : (
-                <RiMediaPlayFill
-                  onClick={() => {
-                    Handler.playVideoSource()
-                  }}
-                />
-              )}
-            </span>
-            <span class="next-episode" onClick={() => Handler.episodeChange(1)}>
-              <RiMediaSkipForwardFill />
-            </span>
-          </div>
-          <div class="lower-controls">
-            <div class="player-time">{videoTime()}</div>
-            <div class="skip-intro" ref={skipIntro} onClick={Handler.skipIntro}>
-              Skip Intro
-            </div>
-            <div class="skip-ending" ref={skipEnding} onClick={Handler.skipEnding}>
-              Skip Ending
-            </div>
-            {/* <div class="hover-time">{hoverTime()}</div> */}
-            <div
-              class="progress-section"
-              onClick={Handler.dragProgressBar}
-              onMouseMove={(e) => {
-                // calculateProgressTime(e)
-                if (!mouseDown) return
-                Handler.dragProgressBar(e)
-              }}
-              onMouseDown={() => {
-                mouseDown = true
-              }}
-              onMouseUp={() => {
-                mouseDown = false
-              }}
-              ref={sectionBar}
-            >
-              <div class="loaded-bar" style={{ width: bufferedBar() }} />
-              <div class="progress-bar" style={{ width: progressBar() }} />
-            </div>
-            <div class="volume">
-              <div class="area">
-                {video?.muted ? (
-                  <RiMediaVolumeMuteFill
+            <div class="inner-controls">
+              <span class="control" onClick={() => Handler.episodeChange(-1)}>
+                <RiMediaSkipBackFill />
+              </span>
+              <span class="control">
+                {loading() ? (
+                  <Spinner />
+                ) : !playing() ? (
+                  <RiMediaPauseFill
                     onClick={() => {
-                      if (!video) return
-                      video.muted = false
+                      Handler.playVideoSource()
                     }}
                   />
                 ) : (
-                  <RiMediaVolumeUpFill
+                  <RiMediaPlayFill
                     onClick={() => {
-                      if (!video) return
-                      video.muted = true
+                      Handler.playVideoSource()
                     }}
                   />
                 )}
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="any"
-                  value={volume}
-                  onChange={(e) => {
-                    const newVolume = Math.min(Math.max(parseFloat(e.target.value), 0), 1)
-                    if (!video) return
-                    video.volume = newVolume
-                    video.muted = newVolume === 0
-                    STORAGE.set('Volume', newVolume)
+              </span>
+              <span class="control" onClick={() => Handler.episodeChange(1)}>
+                <RiMediaSkipForwardFill />
+              </span>
+            </div>
+          </div>
+          <div class="lower-controls">
+            <div class="inner-controls">
+              <div class="player-time">{videoTime()}</div>
+              <div class="skip" ref={skipIntro} onClick={Handler.skipIntro}>
+                Skip Intro
+              </div>
+              <div class="skip" ref={skipEnding} onClick={Handler.skipEnding}>
+                Skip Ending
+              </div>
+              <div
+                class="hover-time"
+                style={{ left: `${offsetX()}px`, opacity: showHoverTime() ? '1' : '0' }}
+              >
+                {hoverTime()}
+              </div>
+              <div
+                class="progress-section"
+                onClick={Handler.dragProgressBar}
+                onMouseMove={(e) => {
+                  calculateProgressTime(e)
+                }}
+                onMouseDown={(e) => {
+                  if (!video) return
+                  if (!video.paused) video.pause()
+                  setPlaying(true)
+                  Handler.dragProgressBar(e)
+                }}
+                onMouseUp={() => {
+                  if (!video) return
+                  if (video.paused) video.play()
+                  setPlaying(false)
+                }}
+                onMouseEnter={() => {
+                  setShowHoverTime(true)
+                }}
+                onMouseLeave={() => {
+                  setShowHoverTime(false)
+                }}
+                ref={sectionBar}
+              >
+                <div class="loaded-bar" style={{ width: bufferedBar() }} />
+                <div class="progress-bar" style={{ width: progressBar() }} />
+              </div>
+              <div class="settings control">
+                <div class="icon" onClick={() => setSettingsOpen(true)}>
+                  <RiSystemListSettingsFill />
+                </div>
+              </div>
+              <div class="volume control">
+                <div class="area">
+                  {video?.muted ? (
+                    <RiMediaVolumeMuteFill
+                      onClick={() => {
+                        if (!video) return
+                        video.muted = false
+                      }}
+                    />
+                  ) : (
+                    <RiMediaVolumeUpFill
+                      onClick={() => {
+                        if (!video) return
+                        video.muted = true
+                      }}
+                    />
+                  )}
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="any"
+                    value={volume}
+                    onChange={(e) => {
+                      const newVolume = Math.min(Math.max(parseFloat(e.target.value), 0), 1)
+                      if (!video) return
+                      video.volume = newVolume
+                      video.muted = newVolume === 0
+                      STORAGE.set('Volume', newVolume)
+                    }}
+                  />
+                </div>
+              </div>
+              <div class="pip control">
+                <div
+                  class="icon"
+                  onClick={() => {
+                    Handler.togglePIP()
                   }}
-                />
+                >
+                  {PIP() ? <RiMediaPictureInPicture2Fill /> : <RiMediaPictureInPictureExitFill />}
+                </div>
               </div>
-            </div>
-            <div class="settings">
-              <div class="icon" onClick={() => setSettingsOpen(true)}>
-                <RiSystemListSettingsFill />
-              </div>
-            </div>
-            <div
-              class="fullscreen"
-              onClick={() => {
-                if (document.fullscreenElement) {
-                  document.exitFullscreen()
-                  setIsFullscreen(false)
-                } else {
-                  if (document.documentElement.requestFullscreen) {
-                    document.documentElement.requestFullscreen()
-                    setIsFullscreen(true)
+              <div
+                class="fullscreen control"
+                onClick={() => {
+                  if (document.fullscreenElement) {
+                    document.exitFullscreen()
+                    setIsFullscreen(false)
+                  } else {
+                    if (document.documentElement.requestFullscreen) {
+                      document.documentElement.requestFullscreen()
+                      setIsFullscreen(true)
+                    }
                   }
-                }
-              }}
-            >
-              {isFullscreen() ? <RiMediaFullscreenExitFill /> : <RiMediaFullscreenFill />}
+                }}
+              >
+                {isFullscreen() ? <RiMediaFullscreenExitFill /> : <RiMediaFullscreenFill />}
+              </div>
             </div>
           </div>
         </div>
@@ -319,6 +357,7 @@ const Player: Component<PlayerProps> = (props) => {
           id="midori-player"
           crossOrigin="anonymous"
           ref={video}
+          onEnded={() => Handler.videoEnded(props.onClose)}
           onTimeUpdate={Handler.videoTimeUpdate}
         >
           <track ref={track} default data-type="vtt" class="subtitles" />

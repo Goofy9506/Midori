@@ -7,13 +7,47 @@
     display: flex;
     margin-right: 10px;
     flex-direction: column;
+    height: calc(100% - 45px);
 
     .sections {
+      cursor: pointer;
       font-size: 18px;
       text-align: left;
       padding: 7px 15px;
       border-radius: 6px;
       color: var(--font-color-2);
+
+      &.active {
+        color: var(--font-color-1);
+        background-color: #343948;
+      }
+    }
+
+    .clear-progress {
+      cursor: pointer;
+      font-size: 14px;
+      text-align: left;
+      margin-top: auto;
+      padding: 7px 15px;
+      border-radius: 6px;
+      color: var(--font-color-2);
+      background-color: #171920;
+
+      &.active {
+        color: var(--font-color-1);
+        background-color: #343948;
+      }
+    }
+
+    .log-out {
+      cursor: pointer;
+      font-size: 14px;
+      text-align: left;
+      margin-top: 5px;
+      padding: 7px 15px;
+      border-radius: 6px;
+      color: var(--font-color-2);
+      background-color: #171920;
 
       &.active {
         color: var(--font-color-1);

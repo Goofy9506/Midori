@@ -1,19 +1,21 @@
+import { Relation as RelationType } from '@renderer/types/Media'
 import { A } from '@solidjs/router'
 import { ipcRenderer } from 'electron'
 import { RiMediaPlayFill } from 'solid-icons/ri'
-import { Show, type Component } from 'solid-js'
+import { type Component } from 'solid-js'
 
 interface Props {
-  media: any
+  media: RelationType
 }
 
-// eslint-disable-next-line solid/no-destructure
-const Relation: Component<Props> = ({ media }) => {
-  return (
-    <>
-      <Show when={media}>
+const Relation: Component<Props> = (props) => {
+  const renderMediaInfo = (media: any) => {
+    const { id, cover, name, type, episodes, chapters, idMal, relation } = media
+    const progress = media.progress || '~'
+    return (
+      <>
         <A
-          href={`/info/${media?.id}`}
+          href={`/info/${id}?malId=${idMal}`}
           onClick={() => {
             setTimeout(() => {
               ipcRenderer.send('reload')
@@ -24,28 +26,34 @@ const Relation: Component<Props> = ({ media }) => {
             <div class="cover" style={{ 'background-color': 'transparent' }}>
               <RiMediaPlayFill class="play-icon" />
               <div class="transition-cover" />
-              <img src={media?.coverImage?.large} alt="cover" />
+              <img src={cover} alt="cover" />
             </div>
             <div class="content">
-              <h2 class="title">
-                {media?.title?.english ? media?.title?.english : media?.title?.romaji}
-              </h2>
+              <h2 class="title">{name}</h2>
               <div class="other-info">
-                {media && media?.type === 'ANIME' ? (
-                  <div class="episodes">
-                    {media && `${media.progress || '~'} | ${media.episodes || '~'}`}
-                  </div>
-                ) : (
-                  <div class="episodes">
-                    {media && `${media.progress || '~'} | ${media.chapters || '~'}`}
-                  </div>
-                )}
-                <div class="format">{media?.format}</div>
+                <div class="episodes">
+                  {type === 'ANIME'
+                    ? `${progress} | ${episodes || '~'}`
+                    : `${progress} | ${chapters || '~'}`}
+                </div>
+                <div class="format">{relation}</div>
               </div>
             </div>
           </div>
         </A>
-      </Show>
+      </>
+    )
+  }
+
+  return (
+    <>
+      {props.media ? (
+        renderMediaInfo(props.media)
+      ) : (
+        <div class="skeleton">
+          <div class="skeleton-cover" style={{ 'background-color': 'transparent' }} />
+        </div>
+      )}
     </>
   )
 }

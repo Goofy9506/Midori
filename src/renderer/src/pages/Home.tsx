@@ -1,13 +1,27 @@
 import { useStorageContext } from '@renderer/hooks/Storage'
-import { Show, type Component } from 'solid-js'
+import { Show, type Component, createSignal, createEffect } from 'solid-js'
 
 import '../styles/Home.scss'
 import { RiMediaNotificationFill, RiMediaNotificationLine } from 'solid-icons/ri'
 import EntryWrapper from '@renderer/components/EntryWrapper'
-import { animeInfo, mangaInfo } from '@renderer/App'
+import { animeInfo } from '@renderer/App'
+import { ALoader } from '@renderer/services/anilist/api/ALoader'
 
 const Home: Component = () => {
+  const ALoad = new ALoader()
   const { Logged } = useStorageContext()
+  const [anime, setAnime] = createSignal<any[]>()
+
+  createEffect(() => {
+    const mediaArray: any[] = []
+    animeInfo()
+      ?.lists?.filter((m: any) => m.status === 'CURRENT')[0]
+      ?.entries?.forEach((media: any) => {
+        const newMedia = ALoad.returnMedia(media, 'DOUBLE')
+        mediaArray.push(newMedia)
+      })
+    setAnime(mediaArray)
+  })
 
   const notifications = 0
 
@@ -50,14 +64,7 @@ const Home: Component = () => {
             ) : null}
             {Logged() ? (
               <div class="wraps">
-                <EntryWrapper
-                  list={animeInfo()?.lists?.filter((m: any) => m.status === 'CURRENT')[0]?.entries}
-                  title="Continue Watching"
-                />
-                <EntryWrapper
-                  list={mangaInfo()?.lists?.filter((m: any) => m.status === 'CURRENT')[0]?.entries}
-                  title="Continue Reading"
-                />
+                <EntryWrapper list={anime()} title="Continue Watching" />
               </div>
             ) : null}
           </Show>

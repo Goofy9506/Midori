@@ -1,6 +1,4 @@
-/* eslint-disable solid/prefer-for */
-// import { useParams } from '@solidjs/router'
-import { For, createEffect, createSignal, type Component } from 'solid-js'
+import { For, createSignal, type Component } from 'solid-js'
 
 import '../styles/Episodes.scss'
 import Player from './Player'
@@ -10,52 +8,56 @@ import {
   RiEditorListUnordered,
   RiSystemMenuFill
 } from 'solid-icons/ri'
+import { Anime } from '@renderer/types/Media'
 
 interface props {
-  animeInfo: any
-  episodeInfo: any
-  aniInfo: any
-  fillerInfo: any
+  mediaInfo: Anime | undefined
 }
 
+export const triggerPlayer = (episode: number) => {
+  setPlayingEpisode(episode)
+  setShowPlayer(true)
+}
+
+const [playingEpisode, setPlayingEpisode] = createSignal<any>()
+const [showPlayer, setShowPlayer] = createSignal<any>()
+
 const Episodes: Component<props> = (props) => {
-  const [playingEpisode, setPlayingEpisode] = createSignal<any>()
   const [filter, setFilter] = createSignal<number>(0)
   const [dialog, setDialog] = createSignal<boolean>(false)
   const [layout, setLayout] = createSignal<string>('grid')
   const [subOrDub, setSubOrDub] = createSignal<string>('sub')
 
-  const [showPlayer, setShowPlayer] = createSignal<any>()
+  // const sinceDate = (date: Date): string | undefined => {
+  //   const formatter = typeof Intl !== 'undefined' && new Intl.RelativeTimeFormat('en')
+  //   const secondsElapsed = (date.getTime() - Date.now()) / 1000
+  //   const ranges = {
+  //     years: 3600 * 24 * 365,
+  //     months: 3600 * 24 * 30,
+  //     weeks: 3600 * 24 * 7,
+  //     days: 3600 * 24,
+  //     hours: 3600,
+  //     minutes: 60,
+  //     seconds: 1
+  //   }
 
-  const sinceDate = (date: Date): string | undefined => {
-    const formatter = typeof Intl !== 'undefined' && new Intl.RelativeTimeFormat('en')
-    const secondsElapsed = (date.getTime() - Date.now()) / 1000
-    const ranges = {
-      years: 3600 * 24 * 365,
-      months: 3600 * 24 * 30,
-      weeks: 3600 * 24 * 7,
-      days: 3600 * 24,
-      hours: 3600,
-      minutes: 60,
-      seconds: 1
-    }
-
-    if (formatter) {
-      for (const [key, value] of Object.entries(ranges)) {
-        if (value < Math.abs(secondsElapsed)) {
-          const delta = secondsElapsed / value
-          return formatter.format(Math.round(delta), key as Intl.RelativeTimeFormatUnit)
-        }
-      }
-    }
-  }
+  //   if (formatter) {
+  //     for (const [key, value] of Object.entries(ranges)) {
+  //       if (value < Math.abs(secondsElapsed)) {
+  //         const delta = secondsElapsed / value
+  //         return formatter.format(Math.round(delta), key as Intl.RelativeTimeFormatUnit)
+  //       }
+  //     }
+  //   }
+  // }
 
   const sortEpisodes = (): number[][] => {
+    if (!props.mediaInfo) return []
     let perPage: number = 100
     const episodes: number[][] = []
-    const episodeNum: number = props.animeInfo.nextAiringEpisode
-      ? props.animeInfo.nextAiringEpisode?.episode - 1
-      : props.animeInfo.episodes
+    const episodeNum: number = props.mediaInfo.nextAiringEpisode
+      ? props.mediaInfo.nextAiringEpisode - 1
+      : props.mediaInfo.totalEpisodes
     episodeNum > 25 && episodeNum < 100 ? (perPage = 25) : (perPage = 100)
     const pages: number = Math.ceil(episodeNum / perPage)
 
@@ -79,16 +81,11 @@ const Episodes: Component<props> = (props) => {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
   }
 
-  createEffect(() => {
-    props.animeInfo.id_mal = props.aniInfo?.mappings?.mal_id
-  })
-
   return (
     <>
       {showPlayer() && (
         <Player
-          animeInfo={props.animeInfo}
-          episodeData={props.episodeInfo || null}
+          animeInfo={props.mediaInfo as Anime}
           episode={playingEpisode()}
           subOrDub={subOrDub()}
           onClose={() => setShowPlayer(false)}
@@ -151,7 +148,7 @@ const Episodes: Component<props> = (props) => {
         </div>
       </div>
       <div class={`blur ${dialog() ? '' : 'hidden'}`} />
-      {pages?.length !== 0 && (
+      {pages?.length !== 0 && props.mediaInfo?.episodes?.length !== 0 && (
         <div class="episode-list">
           <h1>
             Episodes
@@ -185,32 +182,32 @@ const Episodes: Component<props> = (props) => {
             <For each={pages[filter()]}>
               {(episode) => (
                 <div
-                  class={`episode ${props.fillerInfo?.[episode]?.filler ? 'filler' : ''}`}
+                  class={`episode ${props.mediaInfo?.fillerEpisodes?.[episode]?.filler ? 'filler' : ''}`}
+                  id={`${props.mediaInfo?.episodes?.[episode].number}`}
                   onClick={() => {
-                    setPlayingEpisode(props.episodeInfo?.[episode] || episode)
+                    setPlayingEpisode(props.mediaInfo?.episodes?.[episode].number || episode)
                     setShowPlayer(true)
                   }}
                 >
-                  {props.episodeInfo?.[episode]?.image ? (
-                    <img src={props.episodeInfo?.[episode].image} alt="" class="image" />
+                  {props.mediaInfo?.episodes?.[episode]?.thumb ? (
+                    <img src={props.mediaInfo?.episodes?.[episode]?.thumb} alt="" class="image" />
                   ) : (
-                    <img src={props.animeInfo.coverImage.large} alt="" class="image" />
+                    <img src={props.mediaInfo?.cover} alt="" class="image" />
                   )}
                   <div class="content">
                     <div class="episode-title">
                       {episode + 1}.{' '}
-                      {props.episodeInfo?.[episode]?.title?.en || 'Episode ' + `${episode + 1}`}
+                      {props.mediaInfo?.episodes?.[episode]?.title || 'Episode ' + `${episode + 1}`}
                     </div>
-                    <div class="summary">{props.episodeInfo?.[episode]?.summary}</div>
+                    <div class="summary">{props.mediaInfo?.episodes?.[episode]?.desc}</div>
                     <div class="tiny-details">
-                      {props.episodeInfo?.[episode]?.length ? (
-                        <div class="episode-length">{props.episodeInfo?.[episode]?.length}m</div>
+                      {props.mediaInfo?.episodes?.[episode]?.maxLength ? (
+                        <div class="episode-length">
+                          {props.mediaInfo?.episodes?.[episode]?.maxLength}m
+                        </div>
                       ) : null}
-                      <div class="episode-date">
-                        {sinceDate(new Date(props.episodeInfo?.[episode]?.airDate))}
-                      </div>
                       <div class="filler">
-                        {props.fillerInfo?.[episode]?.filler ? 'Filler' : ''}
+                        {props.mediaInfo?.episodes?.[episode]?.filler ? 'Filler' : ''}
                       </div>
                     </div>
                   </div>

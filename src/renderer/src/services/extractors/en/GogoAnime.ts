@@ -1,14 +1,12 @@
 import axios from 'axios'
 import { load } from 'cheerio'
-import GogoCDN from '../../media/GogoCDN'
+import GogoCDN from '../media/GogoCDN'
 
 export default class GogoAnime {
   private PREF_DOMAIN_DEFAULT = 'https://anitaku.to'
   private AJAX_URL = 'https://ajax.gogocdn.net/ajax'
 
   baseUrl = this.PREF_DOMAIN_DEFAULT
-  UserAgent =
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36'
 
   /**
    * Performs an asynchronous search name on the GogoAnime website.

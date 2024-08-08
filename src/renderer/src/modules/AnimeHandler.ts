@@ -1,11 +1,15 @@
+/* eslint-disable no-inner-declarations */
 /* eslint-disable solid/reactivity */
-import GogoAnime from '@renderer/api/Extractor/anime/en/GogoAnime'
-import Zoro from '@renderer/api/Extractor/anime/en/Zoro'
+import GogoAnime from '@renderer/services/extractors/en/GogoAnime'
+import Zoro from '@renderer/services/extractors/en/Zoro'
 import {
+  PIP,
   defaultLanguage,
   setIsFullscreen,
+  setPIP,
   skipEnding,
   skipIntro,
+  timer,
   track,
   video
 } from '@renderer/components/Player'
@@ -13,13 +17,14 @@ import { STORAGE } from '@renderer/utils/Storage'
 import axios, { Axios } from 'axios'
 import Hls from 'hls.js'
 import { createSignal } from 'solid-js'
-import Notify from './Notify'
-import { setAnimeProgress, setAnimeStatus } from '@renderer/api/Anilist/actions'
-import AniSkip from '@renderer/api/AniSkip/actions'
+import Notify from '../components/Notify'
 import { animeInfo, setAnimeInfo } from '@renderer/App'
+import { Anime } from '@renderer/types/Media'
+import { QLoader } from '@renderer/services/anilist/QLoader'
 
 export const [aniSkipError, setAniSkipError] = createSignal<boolean>(false)
 export const [aniSkipOnce, setAniSkipOnce] = createSignal<boolean>(false)
+export const [timeStampsOnce, setTimeStampsOnce] = createSignal<boolean>(false)
 export const [loading, setLoading] = createSignal<boolean>(true)
 export const [playing, setPlaying] = createSignal<boolean>(true)
 export const [subtitles, setSubtitles] = createSignal<any[]>([])
@@ -31,7 +36,7 @@ export const [videoTime, setVideoTime] = createSignal<string>('00:00 / 00:00')
 
 let interval: NodeJS.Timeout | undefined
 
-const formatTime = (time: number) => {
+export const formatTime = (time: number) => {
   const seconds: any = Math.floor(time % 60)
     .toString()
     .padStart(2, '0')
@@ -64,14 +69,14 @@ export default class AnimeHandler {
   private axiosInstance: Axios = axios.create()
   private hlsData: Hls = new Hls()
   private skipTimes: any[] = []
-  private animeInfo: any
+  private animeInfo: Anime
   private subOrDub: string
-  private episodeData: any
+  private epNumb: number
 
-  constructor(episodeNumber: number, animeInfo: any, subOrDub: string, episodeData: any) {
+  constructor(episodeNumber: number, animeInfo: Anime, subOrDub: string) {
     this.animeInfo = animeInfo
     this.subOrDub = subOrDub
-    this.episodeData = episodeData
+    this.epNumb = episodeNumber
     setEpisodeNumber(episodeNumber)
   }
 
@@ -84,7 +89,7 @@ export default class AnimeHandler {
     if (!video) return
     const episodeData = await STORAGE.getEpisodeProgress()
     const progress = episodeData?.find(
-      (item) => item.media === this.animeInfo.title.english && item.episode === episodeNumber()
+      (item) => item.media === this.animeInfo.name && item.episode === episodeNumber()
     )
 
     if (!progress) {
@@ -113,8 +118,10 @@ export default class AnimeHandler {
     }
 
     const existingEpisodeIndex = episodeData.findIndex(
-      (item) => item.media === this.animeInfo.title.english && item.episode === episodeNumber()
+      (item) => item.media === this.animeInfo.name && item.episode === episodeNumber()
     )
+
+    if (video.currentTime === episodeData[existingEpisodeIndex]?.time) return
 
     if (existingEpisodeIndex !== -1) {
       episodeData[existingEpisodeIndex] = {
@@ -124,7 +131,7 @@ export default class AnimeHandler {
       }
     } else {
       episodeData.push({
-        media: this.animeInfo.title.english,
+        media: this.animeInfo.name,
         episode: episodeNumber(),
         time: video.currentTime,
         timeUpdated: Date.now(),
@@ -167,13 +174,15 @@ export default class AnimeHandler {
    * If a video element exists, sets its current time to 0. Detaches and removes the media element if it exists in the Hls data.
    */
   private resetVideoSource = () => {
-    setEpisodeTitle(this.episodeData[episodeNumber() - 1]?.title?.en || '')
+    setEpisodeTitle(this.animeInfo.episodes[episodeNumber() - 1]?.title || '')
     setVideoTime('00:00')
     setBufferedBar('0%')
     setProgressBar('0%')
     setPlaying(true)
     setSubtitles([])
     setLoading(true)
+
+    document.body.style.cursor = 'default'
 
     if (video) {
       video.currentTime = 0
@@ -225,7 +234,7 @@ export default class AnimeHandler {
             Number(result.sub) ===
               Number(
                 this.animeInfo.nextAiringEpisode
-                  ? this.animeInfo.nextAiringEpisode.episode - 1
+                  ? this.animeInfo.nextAiringEpisode - 1
                   : this.animeInfo.episodes
               )) ||
           result.japaneseTitle.toLowerCase() === title.toLowerCase()
@@ -236,40 +245,53 @@ export default class AnimeHandler {
           new Notify().Alert('Episode not found... Try again later!')
           return
         }
-        let episodeId: string
-        if (language === 'en') {
-          episodeId = animeData.episodes[episodeNumber() - 1].id.replace(
-            /\$both|\$sub|\$dub/,
-            `$dub`
-          )
-          if (!episodeId.includes('$dub') && language === 'en') {
-            new Notify().Alert('dub was not found, loading sub instead...')
+        const getEpisodeId = (
+          language: string,
+          animeData: any,
+          episodeNumber: () => number
+        ): string => {
+          let episodeId: string
+          if (language === 'en') {
+            // eslint-disable-next-line prettier/prettier
+            episodeId = animeData.episodes[episodeNumber() - 1].id.replace(
+              /\$both|\$sub|\$dub/,
+              `$dub`
+            )
+            if (!episodeId.includes('$dub')) {
+              new Notify().Alert('dub was not found, loading sub instead...')
+            }
+          } else {
+            episodeId = animeData.episodes[episodeNumber() - 1].id
           }
-        } else {
-          episodeId = animeData.episodes[episodeNumber() - 1].id
+          return episodeId
         }
+
+        const episodeId = getEpisodeId(language, animeData, episodeNumber)
         const source = await zoro.videoSourceList(episodeId)
-        if (source) {
-          const currentSource = source.sources[0].url
-          if (episodeId.includes('$sub')) {
-            this.getSubtitles(source.subtitles)
+
+        if (await source.url) {
+          const sourceUrl = await source.url
+          const currentSource = sourceUrl.sources[0].url
+          if (sourceUrl.subtitles && (await source.language) === 'sub') {
+            this.getSubtitles(sourceUrl.subtitles)
           }
           if (currentSource) {
             return currentSource
           }
-        } else {
-          episodeId = animeData.episodes[episodeNumber() - 1].id.replace(/\$both/, `$sub`)
-          const source2 = await zoro.videoSourceList(episodeId)
-          if (source2) {
-            const currentSource = source2.sources[0].url
-            if (episodeId.includes('$sub')) {
-              this.getSubtitles(source2.subtitles)
-            }
-            if (currentSource) {
-              return currentSource
-            }
-          }
-        }
+        } //else {
+        //   episodeId = animeData.episodes[episodeNumber() - 1].id.replace(/\$both/, `$sub`)
+        //   const source2 = await zoro.videoSourceList(episodeId)
+        //   if (source2) {
+        //     new Notify().Alert('dub was not found, loading sub instead...')
+        //     const currentSource = source2.sources[0].url
+        //     if (episodeId.includes('$sub')) {
+        //       this.getSubtitles(source2.subtitles)
+        //     }
+        //     if (currentSource) {
+        //       return currentSource
+        //     }
+        //   }
+        // }
       }
     }
   }
@@ -309,7 +331,10 @@ export default class AnimeHandler {
   public getTimeStamps = async () => {
     const op: any = []
     const ed: any = []
-    const timeStamp = await new AniSkip().getAniSkip(this.animeInfo.id_mal, episodeNumber())
+    const timeStamp = await new QLoader().getSkipTimes(
+      this.animeInfo.idMal.toString(),
+      episodeNumber()
+    )
     if (!timeStamp) return setAniSkipError(true)
     timeStamp.forEach((ep: any) => {
       if (ep.skipType === 'ed') {
@@ -395,6 +420,7 @@ export default class AnimeHandler {
    */
   private loadHLS = async (source: string) => {
     if (!video) return
+    document.addEventListener('keydown', this.keybindHandler)
     const volume: number = await STORAGE.getVolume()
     this.hlsData.loadSource(source)
     this.hlsData.attachMedia(video)
@@ -403,7 +429,6 @@ export default class AnimeHandler {
       this.loadVideoProgress()
       setLoading(false)
       setAniSkipError(false)
-      document.addEventListener('keydown', this.keybindHandler)
       this.hlsData.currentLevel = this.hlsData.levels.length - 1
       if (interval) clearInterval(interval)
       interval = setInterval(() => {
@@ -413,15 +438,33 @@ export default class AnimeHandler {
     video.volume = volume
   }
 
+  public togglePIP = () => {
+    if (!video) return
+    if (video !== document.pictureInPictureElement) {
+      video.requestPictureInPicture().catch((err) => {
+        console.error(err)
+      })
+    } else {
+      document.exitPictureInPicture()
+    }
+    setPIP(!PIP())
+  }
+
   /**
    * Closes the video source by detaching media, pausing the video, resetting sources, exiting fullscreen, and updating loading and playing states.
    * @param close - A function to be called after closing the video source.
    */
   public closeVideoSource = async (close: () => void) => {
     document.removeEventListener('keydown', this.keybindHandler)
+    if (document.body.style.cursor === 'none') {
+      document.body.style.cursor = 'default'
+    }
     const autoUpdate = await STORAGE.getAutoUpdate()
     if (autoUpdate === undefined) {
       STORAGE.set('AutoUpdate', false)
+    }
+    if (autoUpdate === true) {
+      this.saveToAnilist()
     }
     if (this.hlsData.media) {
       this.hlsData.detachMedia()
@@ -434,6 +477,7 @@ export default class AnimeHandler {
     if (track) {
       track.src = ''
     }
+    this.resetVideoSource()
     if (document.fullscreenElement) {
       document.exitFullscreen()
     }
@@ -442,11 +486,9 @@ export default class AnimeHandler {
     setTimeout(() => {
       close()
     }, 200)
-    if (autoUpdate === true) {
-      this.saveToAnilist()
-    }
     if (interval) clearInterval(interval)
-    // document.removeEventListener('keydown', keyEvent)
+    clearTimeout(timer)
+    setTimeout(() => (document.body.style.cursor = 'default'), 2300)
   }
 
   /**
@@ -456,6 +498,20 @@ export default class AnimeHandler {
     if (!video) return
     setPlaying(!playing())
     playing() ? video.pause() : video.play()
+  }
+
+  /**
+   * Asynchronous method to handle the event when the video ends.
+   * Checks if the video exists, retrieves the autoPlay setting from storage,
+   * and if autoPlay is enabled, triggers the method to change to the next episode.
+   */
+  public videoEnded = async (close: () => void) => {
+    if (!video) return
+    if (this.animeInfo?.currentEpisodes === episodeNumber()) return this.closeVideoSource(close)
+    const autoPlay = await STORAGE.getAutoPlay()
+    if (autoPlay) {
+      this.episodeChange(1)
+    }
   }
 
   /**
@@ -469,11 +525,12 @@ export default class AnimeHandler {
       STORAGE.set('AutoUpdate', false)
     }
     const episodeInfo = this.animeInfo.nextAiringEpisode
-      ? this.animeInfo.nextAiringEpisode?.episode - 1
+      ? this.animeInfo.nextAiringEpisode - 1
       : this.animeInfo.episodes
     if (Number(episodeNumber()) === Number(episodeInfo)) return
     if (arithmetic === 1 && autoUpdate === true) this.saveToAnilist()
     setEpisodeNumber(Number(episodeNumber()) + Number(arithmetic))
+    this.epNumb = Number(this.epNumb) + Number(arithmetic)
     this.loadVideoSource()
   }
 
@@ -483,16 +540,25 @@ export default class AnimeHandler {
    */
   public videoTimeUpdate = async () => {
     if (!video) return
-    const loadTimeStamps = await STORAGE.getLoadTimeStamps()
-    if (loadTimeStamps === undefined) {
-      STORAGE.set('LoadTimeStamps', false)
-    }
+
     if (video.readyState === 4) {
       setBufferedBar(`${(video?.buffered?.end(0) / (video?.duration ?? 0)) * 100}%`)
     }
-    setVideoTime(formatTime(video.currentTime) + ' / ' + formatTime(video.duration))
-    setProgressBar(`${(video.currentTime / video.duration) * 100}%`)
-    if (loadTimeStamps) this.updateTimeStamps()
+    if (video.duration > 0) {
+      setVideoTime(formatTime(video.currentTime) + ' / ' + formatTime(video.duration))
+      setProgressBar(`${(video.currentTime / video.duration) * 100}%`)
+    }
+    if (timeStampsOnce()) return
+    const loadTimeStamps = await STORAGE.getLoadTimeStamps()
+    if (loadTimeStamps === undefined) {
+      STORAGE.set('LoadTimeStamps', false)
+      setTimeStampsOnce(true)
+    }
+    if (loadTimeStamps) {
+      this.updateTimeStamps()
+    } else {
+      setTimeStampsOnce(true)
+    }
   }
 
   /**
@@ -576,38 +642,45 @@ export default class AnimeHandler {
    */
   public saveToAnilist = async () => {
     if (!video) return
-    if (!this.animeInfo) if (episodeNumber() < this.animeInfo.mediaListEntry.progress) return
-    if (video.currentTime < video.duration / 2) return
-    const status = this.animeInfo.mediaListEntry?.status
+    if (episodeNumber() < this.animeInfo.userProgress) return
+    if (!((video.currentTime * 100) / video.duration > 80)) return
+
+    const status = this.animeInfo.userStatus
+    const QLoad = new QLoader()
     switch (status) {
       case 'CURRENT':
-        setAnimeProgress(this.animeInfo.id, episodeNumber())
+        QLoad.setAnimeStatus(this.animeInfo.id, 'CURRENT', episodeNumber())
         break
       case 'REPEATING':
       case 'COMPLETED':
-        setAnimeStatus(this.animeInfo.id, 'REWATCHING', episodeNumber())
+        QLoad.setAnimeStatus(this.animeInfo.id, 'REWATCHING', episodeNumber())
         break
       default:
-        setAnimeStatus(this.animeInfo.id, 'CURRENT', episodeNumber())
+        QLoad.setAnimeStatus(this.animeInfo.id, 'CURRENT', episodeNumber())
         break
     }
-    this.animeInfo.mediaListEntry.progress = episodeNumber()
-    const D = animeInfo()
-    if (D) {
-      D.lists.forEach((element: any) => {
-        if (element.status === 'CURRENT') {
-          const existingEpisodeIndex = element.entries.findIndex(
-            (item: any) => item.mediaId === this.animeInfo.id
-          )
-          const e = {
-            ...element.entries[existingEpisodeIndex],
-            progress: Number(episodeNumber())
+
+    if (this.animeInfo.userProgress) {
+      this.animeInfo.userProgress = episodeNumber()
+      const updatedAnimeInfo = animeInfo()
+      if (updatedAnimeInfo) {
+        updatedAnimeInfo.lists.forEach((list: any) => {
+          if (list.status === 'CURRENT') {
+            const existingEpisodeIndex = list.entries.findIndex(
+              (entry: any) => entry.mediaId === this.animeInfo.id
+            )
+            if (existingEpisodeIndex !== -1) {
+              list.entries[existingEpisodeIndex] = {
+                ...list.entries[existingEpisodeIndex],
+                progress: Number(episodeNumber())
+              }
+              const [updatedEntry] = list.entries.splice(existingEpisodeIndex, 1)
+              list.entries.unshift(updatedEntry)
+              setAnimeInfo(updatedAnimeInfo)
+            }
           }
-          element.entries.splice(existingEpisodeIndex, 1)
-          element.entries.unshift(e)
-          setAnimeInfo(D)
-        }
-      })
+        })
+      }
     }
   }
 
@@ -621,14 +694,11 @@ export default class AnimeHandler {
   private getExtraTitles = (): string[] => {
     const titles: string[] = []
     const returnTitles: string[] = []
-    if (this.animeInfo.title.english) {
-      titles.push(this.animeInfo.title.english)
+    if (this.animeInfo.name) {
+      titles.push(this.animeInfo.name)
     }
-    if (this.animeInfo.title.romaji) {
-      titles.push(this.animeInfo.title.romaji)
-    }
-    if (this.animeInfo.title.native) {
-      titles.push(this.animeInfo.title.native)
+    if (this.animeInfo.nameRomaji) {
+      titles.push(this.animeInfo.nameRomaji)
     }
     const renameTitles = !this.animeInfo.synonyms
       ? titles

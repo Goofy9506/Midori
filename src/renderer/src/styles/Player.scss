@@ -1,15 +1,21 @@
 .player-container {
   top: 0;
   left: 0;
-  z-index: 101;
+  z-index: 90;
   width: 100%;
-  height: 100%;
   position: fixed;
-  max-width: 100%;
-  max-height: 100%;
   overflow: hidden;
   aspect-ratio: 16 / 9;
+  margin-top: 25px;
   background-color: #000;
+  height: calc(100% - 25px);
+
+  &.fullscreen {
+    width: 100%;
+    height: 100%;
+    margin-top: 0px;
+    z-index: 101;
+  }
 
   #midori-player {
     width: 100%;
@@ -19,47 +25,25 @@
     &::cue {
       opacity: 1;
       font-size: 42px;
-      margin-bottom: 40px;
       background-color: transparent;
       -webkit-text-stroke: 3px black;
     }
 
     &::-webkit-media-text-track-container {
+      line-height: 1.15;
       font-weight: 700;
       position: absolute;
       overflow: visible !important;
-      font-family: "Poppins", sans-serif;
+      font-family: 'Poppins', sans-serif;
       -webkit-text-stroke: 1.5px black;
-      -webkit-transform: translateY(-1%) !important;
-    }
-  }
-
-  .exit {
-    left: 1.5%;
-    display: flex;
-    position: absolute;
-    flex-direction: row;
-
-    svg {
-      cursor: pointer;
-      margin-top: 10px;
-    }
-
-    div {
-      font-size: 20px;
-      margin-top: 20px;
-      text-align: left !important;
-
-      p {
-        font-size: 16px;
-        color: var(--font-color-3);
-      }
+      -webkit-transform: translateY(-5%) !important;
     }
   }
 
   .controls {
     opacity: 0;
-    z-index: 101;
+    display: none;
+    z-index: 90;
     width: 100%;
     cursor: none;
     height: 100%;
@@ -71,85 +55,106 @@
 
     &.showed {
       opacity: 100;
+      display: block;
       cursor: default;
     }
 
-    .mid-controls {
-      .previous-episode {
-        top: 50%;
-        right: 55.7%;
-        display: flex;
+    .inner-controls {
+      width: 100%;
+      height: 100%;
+      display: relative;
+    }
+
+    .top-controls {
+      top: 0px;
+      width: 100%;
+      margin-top: 10px;
+      position: absolute;
+      height: fit-content;
+
+      .exit {
+        float: left;
+        font-size: 55px;
         cursor: pointer;
-        position: absolute;
+        position: relative;
       }
 
-      .play-pause {
-        top: 50%;
-        right: 50%;
-        display: flex;
-        cursor: pointer;
-        margin-left: 10px;
-        position: absolute;
-      }
+      .episode-info {
+        font-size: 20px;
+        text-align: left;
 
-      .next-episode {
-        top: 50%;
-        right: 44%;
-        display: flex;
-        cursor: pointer;
-        position: absolute;
+        .anime-name {
+          font-size: 16px;
+          color: var(--font-color-3);
+        }
       }
     }
 
-    .hover-time {
-      right: 2.5%;
-      bottom: 20px;
-      font-size: 16px;
-      margin-left: 28px;
+    .mid-controls {
+      top: 50%;
+      width: 100%;
       position: absolute;
+      height: fit-content;
+      align-items: center;
+      justify-content: center;
+      transform: translate(0, -50%);
+
+      .inner-controls {
+        gap: 5%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .control {
+        display: flex;
+        cursor: pointer;
+        position: relative;
+      }
     }
 
     .lower-controls {
-      bottom: 3%;
-      width: calc(100% - 100px);
-      height: 20px;
-      padding: 0px 50px;
+      bottom: 5px;
+      padding: 0px 20px;
       position: absolute;
+      height: fit-content;
+      width: calc(100% - 40px);
 
-      .player-time {
-        left: 2.5%;
-        bottom: 20px;
-        font-size: 22px;
+      .hover-time {
+        font-size: 16px;
         position: absolute;
+        transition: 0.2s ease-in-out;
       }
 
-      .skip-intro {
-        left: 2.5%;
-        bottom: 60px;
-        padding: 5px;
-        display: none;
-        cursor: pointer;
-        font-size: 18px;
-        position: absolute;
-        border-radius: 6px;
-        transition: 0.2s ease-in-out;
-        background-color: #1f212b54;
-        outline: 1px solid var(--font-color-1);
+      .player-time {
+        float: left;
+        font-size: 22px;
+        position: relative;
+      }
 
-        &:hover {
-          background-color: #1f212b;
-          outline: 1px solid var(--font-color-1);
+      .control {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        cursor: pointer;
+        position: relative;
+
+        svg {
+          left: 0px;
+          bottom: 0px;
+          font-size: 35px;
+          position: absolute;
         }
       }
 
-      .skip-ending {
-        left: 2.5%;
-        bottom: 60px;
+      .skip {
+        bottom: 5px;
+        float: right;
         padding: 5px;
         display: none;
         cursor: pointer;
         font-size: 18px;
-        position: absolute;
+        position: relative;
         border-radius: 6px;
         transition: 0.2s ease-in-out;
         background-color: #1f212b54;
@@ -162,10 +167,9 @@
       }
 
       .volume {
-        left: 5%;
-        bottom: -28px;
+        float: left;
         display: flex;
-        position: absolute;
+        position: relative;
 
         .area {
           width: 40px;
@@ -178,13 +182,6 @@
               touch-action: auto;
             }
           }
-        }
-
-        svg {
-          left: 0px;
-          bottom: 0px;
-          font-size: 35px;
-          position: absolute;
         }
 
         input {
@@ -205,48 +202,30 @@
         }
       }
 
-      .settings {
-        left: 2.5%;
-        width: 40px;
-        height: 40px;
-        bottom: -28px;
-        display: flex;
-        cursor: pointer;
-        position: absolute;
 
-        .icon {
-          font-size: 35px;
-        }
+
+      .settings {
+        float: left;
+      }
+
+      .pip {
+        float: right;
       }
 
       .fullscreen {
-        right: 2.5%;
-        width: 40px;
-        height: 40px;
-        bottom: -32px;
-        display: flex;
-        position: absolute;
-
-        svg {
-          font-size: 35px;
-          vertical-align: middle;
-        }
+        float: right;
       }
 
       .progress-section {
         z-index: 102;
         width: 100%;
         height: 7px;
-        cursor: grab;
+        cursor: pointer;
         display: flex;
         overflow: hidden;
         border-radius: 6px;
         position: relative;
         background-color: #bebbbbb2;
-
-        &:active {
-          cursor: grabbing;
-        }
 
         .loaded-bar {
           height: 7px;
@@ -263,7 +242,7 @@
 
           &::before {
             top: 50%;
-            content: "";
+            content: '';
             width: 15px;
             height: 15px;
             right: -10px;
@@ -300,7 +279,7 @@
       box-sizing: border-box;
       background: currentColor;
       border-radius: 20%;
-      content: " ";
+      content: ' ';
       display: block;
       height: 17.6px;
       left: 36.8px;
