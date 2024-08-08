@@ -34,8 +34,8 @@ import {
   RiMediaVolumeUpFill,
   RiSystemListSettingsFill
 } from 'solid-icons/ri'
-import { STORAGE } from '@renderer/utils/Storage'
 import { Anime } from '@renderer/types/Media'
+import { useStorageContext } from '@renderer/hooks/Storage'
 
 export const [defaultLanguage, setDefaultLanguage] = createSignal<string>('English')
 export const [showHoverTime, setShowHoverTime] = createSignal<boolean>(false)
@@ -45,7 +45,7 @@ export const [showed, setShowed] = createSignal<boolean>(true)
 export const [offsetX, setOffsetX] = createSignal<number>(0)
 export const [PIP, setPIP] = createSignal<boolean>(false)
 const [settingsOpen, setSettingsOpen] = createSignal<boolean>(false)
-export let volume: number = await STORAGE.getVolume()
+
 export let skipEnding: HTMLDivElement | undefined
 export let skipIntro: HTMLDivElement | undefined
 export let video: HTMLVideoElement | undefined
@@ -101,6 +101,7 @@ interface PlayerProps {
 }
 
 const Player: Component<PlayerProps> = (props) => {
+  const { Volume } = useStorageContext()
   const Handler = new AnimeHandler(Number(props.episode), props.animeInfo, props.subOrDub)
 
   Handler.loadVideoSource()
@@ -313,13 +314,14 @@ const Player: Component<PlayerProps> = (props) => {
                     min="0"
                     max="1"
                     step="any"
-                    value={volume}
+                    value={Volume()}
                     onChange={(e) => {
                       const newVolume = Math.min(Math.max(parseFloat(e.target.value), 0), 1)
+                      const { setStore } = useStorageContext()
                       if (!video) return
                       video.volume = newVolume
                       video.muted = newVolume === 0
-                      STORAGE.set('Volume', newVolume)
+                      setStore('Volume', newVolume)
                     }}
                   />
                 </div>

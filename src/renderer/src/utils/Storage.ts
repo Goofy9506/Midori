@@ -52,6 +52,12 @@ const getAutoPlay = async (): Promise<boolean> => {
   return autoplay
 }
 
+// Interface
+const getColorTheme = async (): Promise<string> => {
+  const colortheme = await ipcRenderer.invoke('getStoreValue', 'ColorTheme')
+  return colortheme
+}
+
 const set = async (key: StoreKeys, value: any): Promise<void> => {
   await ipcRenderer.invoke('setStoreValue', key, value)
 }
@@ -67,5 +73,8 @@ export const STORAGE = {
   getSkipOPED,
   getLoadTimeStamps,
   getAutoPlay,
+
+  // Interface
+  getColorTheme,
   set
 }

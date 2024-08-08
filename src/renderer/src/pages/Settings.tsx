@@ -1,11 +1,22 @@
-import { STORAGE } from '@renderer/utils/Storage'
 import { createSignal, onMount, type Component } from 'solid-js'
 
 import '../styles/Settings.scss'
 import Notify from '@renderer/components/Notify'
+import { getColorTheme } from '@renderer/utils/UI'
+import { useStorageContext } from '@renderer/hooks/Storage'
 
 const Settings: Component = () => {
   const [settings, setSettings] = createSignal<string>('player')
+  const {
+    AudioLanguage,
+    ColorTheme,
+    Logged,
+    LoadTimeStamps,
+    AutoPlay,
+    AutoUpdate,
+    SkipOPED,
+    setStore
+  } = useStorageContext()
 
   const [preferredAudioLanguage, setPreferredAudioLanguage] = createSignal<string>('ja')
   const [preferredSubtitleLanguage, setPreferredSubtitleLanguage] = createSignal<string>('en')
@@ -16,13 +27,19 @@ const Settings: Component = () => {
   const [autoPlay, setAutoPlay] = createSignal<boolean>(true)
   const [logged, setLogged] = createSignal<boolean>(false)
 
+  // Interface
+  const [colorTheme, setColorTheme] = createSignal<string>('green')
+
   const dataSetup = async () => {
-    setPreferredAudioLanguage(await STORAGE.getAudioLanguage())
-    setLoadTimeStamps(await STORAGE.getLoadTimeStamps())
-    setAutoSkipOpEd(await STORAGE.getSkipOPED())
-    setAutoComplete(await STORAGE.getAutoUpdate())
-    setAutoPlay(await STORAGE.getAutoPlay())
-    setLogged(await STORAGE.getLogged())
+    setPreferredAudioLanguage(AudioLanguage())
+    setLoadTimeStamps(LoadTimeStamps())
+    setAutoSkipOpEd(SkipOPED())
+    setAutoComplete(AutoUpdate())
+    setAutoPlay(AutoPlay())
+    setLogged(Logged())
+
+    // Interface
+    setColorTheme(ColorTheme())
   }
 
   onMount(dataSetup)
@@ -48,7 +65,7 @@ const Settings: Component = () => {
               <div
                 class="clear-progress"
                 onClick={() => {
-                  STORAGE.set('EpisodeProgress', [])
+                  setStore('EpisodeProgress', [])
                   new Notify().Alert('The episode progress data has been cleared!')
                 }}
               >
@@ -57,8 +74,8 @@ const Settings: Component = () => {
               <div
                 class="log-out"
                 onClick={() => {
-                  STORAGE.set('Logged', false)
-                  STORAGE.set('AnilistToken', '')
+                  setStore('Logged', false)
+                  setStore('AnilistToken', '')
                   new Notify().Alert('You have successfully logged out!')
                 }}
               >
@@ -76,7 +93,7 @@ const Settings: Component = () => {
                         value={preferredAudioLanguage()}
                         onChange={(e) => {
                           setPreferredAudioLanguage(e.target.value)
-                          STORAGE.set('AudioLanguage', e.target.value)
+                          setStore('AudioLanguage', e.target.value)
                         }}
                       >
                         <option value="en">English</option>
@@ -128,9 +145,9 @@ const Settings: Component = () => {
                         value={loadTimeStamps() ? 'enabled' : 'disabled'}
                         onChange={(e) => {
                           setLoadTimeStamps(e.target.value === 'enabled')
-                          STORAGE.set('LoadTimeStamps', e.target.value === 'enabled')
+                          setStore('LoadTimeStamps', e.target.value === 'enabled')
                           autoSkipOpEd()
-                            ? (setAutoSkipOpEd(false), STORAGE.set('SkipOPED', false))
+                            ? (setAutoSkipOpEd(false), setStore('SkipOPED', false))
                             : undefined
                         }}
                       >
@@ -146,7 +163,7 @@ const Settings: Component = () => {
                         value={autoPlay() ? 'enabled' : 'disabled'}
                         onChange={(e) => {
                           setAutoPlay(e.target.value === 'enabled')
-                          STORAGE.set('AutoPlay', e.target.value === 'enabled')
+                          setStore('AutoPlay', e.target.value === 'enabled')
                         }}
                       >
                         <option value="enabled" selected>
@@ -163,7 +180,7 @@ const Settings: Component = () => {
                         value={autoSkipOpEd() ? 'enabled' : 'disabled'}
                         onChange={(e) => {
                           setAutoSkipOpEd(e.target.value === 'enabled')
-                          STORAGE.set('SkipOPED', e.target.value === 'enabled')
+                          setStore('SkipOPED', e.target.value === 'enabled')
                         }}
                       >
                         <option value="enabled" selected>
@@ -181,7 +198,7 @@ const Settings: Component = () => {
                         onChange={(e) => {
                           if (logged()) {
                             setAutoComplete(e.target.value === 'enabled')
-                            STORAGE.set('AutoUpdate', e.target.value === 'enabled')
+                            setStore('AutoUpdate', e.target.value === 'enabled')
                           }
                         }}
                       >
@@ -189,6 +206,34 @@ const Settings: Component = () => {
                           Enabled
                         </option>
                         <option value="disabled">Disabled</option>
+                      </select>
+                    </div>
+                  </div>
+                </>
+              )}
+              {settings() === 'interface' && (
+                <>
+                  <div class="settings-content">
+                    <div class="settings-header">Interface Settings</div>
+                    <div class="settings-item">
+                      <div class="settings-item-title">Theme</div>
+                      <select
+                        value={colorTheme()}
+                        onChange={(e) => {
+                          if (logged()) {
+                            setColorTheme(e.target.value)
+                            setStore('ColorTheme', e.target.value)
+                            getColorTheme(e.target.value)
+                          }
+                        }}
+                      >
+                        <option value="green" selected>
+                          Midori Green
+                        </option>
+                        <option value="blue">Midori Blue</option>
+                        <option value="purple">Midori Purple</option>
+                        <option value="pink">Midori Pink</option>
+                        <option value="red">Midori Red</option>
                       </select>
                     </div>
                   </div>

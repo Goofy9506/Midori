@@ -1,12 +1,14 @@
 import { createEffect, createSignal, type Component, type ComponentProps } from 'solid-js'
 
 import './styles/App.scss'
+import './styles/Colors.scss'
 import Sidebar from './components/Sidebar'
 import Titlebar from './components/Titlebar'
 import { StorageProvider } from './hooks/Storage'
-import { STORAGE } from './utils/Storage'
 
 import { QLoader } from './services/anilist/QLoader'
+import { getColorTheme } from './utils/UI'
+import { STORAGE } from './utils/Storage'
 
 export const [animeInfo, setAnimeInfo] = createSignal<any>()
 export const [trendingAnimeInfo, setTrendingAnimeInfo] = createSignal<any>(null)
@@ -17,30 +19,16 @@ export const [updatedAnimeInfo, setUpdatedAnimeInfo] = createSignal<any>(null)
 
 const App: Component = (props: ComponentProps<'div'>) => {
   const [avatar, setAvatar] = createSignal<string>('')
+  const ColorTheme = STORAGE.getColorTheme()
   const QLoad = new QLoader()
 
-  const defaultSettings = {
-    EpisodeProgress: [],
-    Volume: 1,
-    AutoUpdate: false,
-    AudioLanguage: 'ja',
-    SkipOPED: false,
-    AutoPlay: true,
-    LoadTimeStamps: false
-  }
-
-  Object.entries(defaultSettings).forEach(([key, value]) => {
-    if (STORAGE[`get${key}`]() === undefined) {
-      STORAGE.set(key as keyof typeof defaultSettings, value)
-    }
-  })
-
   createEffect(() => {
-    // Gets the user's data && sets the avatar
+    // Gets the user's data && sets the avatar && sets the color theme
     ;(async () => {
       const viewer = await QLoad.getViewer()
       setAvatar(viewer.avatar.large ? viewer.avatar.large : viewer.avatar.medium)
       setAnimeInfo(await QLoad.getViewerList('ANIME', viewer.id))
+      getColorTheme(await ColorTheme)
     })()
   })
 

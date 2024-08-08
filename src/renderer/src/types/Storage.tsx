@@ -11,17 +11,22 @@ export type StoreKeys =
   | 'SkipOPED'
   | 'LoadTimeStamps'
   | 'AutoPlay'
+  // Interface
+  | 'ColorTheme'
 
 export type StoreContextType = {
   AnilistToken: Accessor<string>
   Logged: Accessor<boolean>
-  EpisodeProgress: Accessor<[]>
+  EpisodeProgress: Accessor<any[]>
   Volume: Accessor<number>
   AutoUpdate: Accessor<boolean>
   AudioLanguage: Accessor<string>
   SkipOPED: Accessor<boolean>
   LoadTimeStamps: Accessor<boolean>
   AutoPlay: Accessor<boolean>
+
+  // Interface
+  ColorTheme: Accessor<string>
   setStore: (key: StoreKeys, value: any) => Promise<void>
 }
 
@@ -61,6 +66,12 @@ export const STORE_SCHEMA: Record<StoreKeys, any> = {
   AutoPlay: {
     type: 'boolean',
     default: true
+  },
+
+  // Interface
+  ColorTheme: {
+    type: 'string',
+    default: 'green'
   }
 }
 

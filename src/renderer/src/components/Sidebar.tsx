@@ -26,7 +26,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
   if (href === '/anime') setActive(2)
 
   return (
-    <div class="sidebar">
+    <div class="sidebar ">
       <div class="top">
         <A
           href="/"

@@ -3,6 +3,7 @@ import { Component, For } from 'solid-js'
 import '../styles/Slideshow.scss'
 import { A } from '@solidjs/router'
 import { Media } from '@renderer/types/Anilist'
+import { makeTimer } from '@solid-primitives/timer'
 
 interface CardProps {
   listInfo: Media
@@ -54,18 +55,22 @@ interface SlideProps {
 const Slideshow: Component<SlideProps> = (props) => {
   let slideShowRef: HTMLDivElement | undefined
   let scroll = 0
-  setInterval(() => {
-    if (!slideShowRef) return
-    if (scroll !== slideShowRef.childElementCount) {
-      slideShowRef.scrollLeft += 1800
-      scroll += 1
-    }
+  makeTimer(
+    () => {
+      if (!slideShowRef || !slideShowRef.firstChild) return
+      if (scroll !== slideShowRef.childElementCount) {
+        slideShowRef.scrollLeft += slideShowRef.children[0].clientWidth
+        scroll += 1
+      }
 
-    if (scroll === slideShowRef.childElementCount) {
-      slideShowRef.scrollLeft -= 1800
-      scroll--
-    }
-  }, 20000)
+      if (scroll === slideShowRef.childElementCount) {
+        slideShowRef.scrollLeft -= slideShowRef.children[0].clientWidth
+        scroll--
+      }
+    },
+    20000,
+    setInterval
+  )
 
   return (
     <>

@@ -12,6 +12,9 @@ const StorageContext = createContext<StoreContextType>({
   SkipOPED: STORE_SCHEMA.SkipOPED.default,
   LoadTimeStamps: STORE_SCHEMA.LoadTimeStamps.default,
   AutoPlay: STORE_SCHEMA.AutoPlay.default,
+
+  // Interface
+  ColorTheme: STORE_SCHEMA.ColorTheme.default,
   setStore: async () => {}
 })
 
@@ -34,13 +37,25 @@ export const useStorage = (): StoreContextType => {
   const [Logged, setLogged] = createSignal<boolean>(STORE_SCHEMA.Logged)
   const [Volume, setVolume] = createSignal<number>(STORE_SCHEMA.Volume)
 
+  // Interface
+  const [ColorTheme, setColorTheme] = createSignal<string>(STORE_SCHEMA.ColorTheme)
+
   /**
    * Asynchronously loads values from storage and updates the state variables
    */
   const loadStore = async () => {
     const store = await STORAGE.getStore()
 
-    if (store.EpisodeProgress !== EpisodeProgress()) setEpisodeProgress(store.EpisodeProgress)
+    if (store.EpisodeProgress === undefined) STORAGE.set('EpisodeProgress', [])
+    if (store.LoadTimeStamps === undefined) STORAGE.set('LoadTimeStamps', false)
+    if (store.AudioLanguage === undefined) STORAGE.set('AudioLanguage', 'ja')
+    if (store.AnilistToken === undefined) STORAGE.set('AnilistToken', '')
+    if (store.AutoUpdate === undefined) STORAGE.set('AutoUpdate', false)
+    if (store.AutoPlay === undefined) STORAGE.set('AutoPlay', true)
+    if (store.SkipOPED === undefined) STORAGE.set('SkipOPED', false)
+    if (store.Logged === undefined) STORAGE.set('Logged', false)
+    if (store.Volume === undefined) STORAGE.set('Volume', 1)
+
     if (store.LoadTimeStamps !== LoadTimeStamps()) setLoadTimeStamps(store.LoadTimeStamps)
     if (store.AudioLanguage !== AudioLanguage()) setAudioLanguage(store.AudioLanguage)
     if (store.AnilistToken !== AnilistToken()) setAnilistToken(store.AnilistToken)
@@ -49,6 +64,10 @@ export const useStorage = (): StoreContextType => {
     if (store.SkipOPED !== SkipOPED()) setSkipOPED(store.SkipOPED)
     if (store.Logged !== Logged()) setLogged(store.Logged)
     if (store.Volume !== Volume()) setVolume(store.Volume)
+
+    // Interface
+    if (store.ColorTheme === undefined) STORAGE.set('ColorTheme', 'green')
+    if (store.ColorTheme !== ColorTheme()) setColorTheme(store.ColorTheme)
   }
 
   createEffect(() => {
@@ -89,6 +108,11 @@ export const useStorage = (): StoreContextType => {
       case 'AutoPlay':
         setAutoPlay(value)
         break
+
+      // Interface
+      case 'ColorTheme':
+        setColorTheme(value)
+        break
       default:
         break
     }
@@ -106,6 +130,9 @@ export const useStorage = (): StoreContextType => {
     SkipOPED,
     LoadTimeStamps,
     AutoPlay,
+
+    // Interface
+    ColorTheme,
     setStore
   }
 }

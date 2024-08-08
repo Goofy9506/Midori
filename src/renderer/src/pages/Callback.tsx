@@ -1,11 +1,12 @@
-import { STORAGE } from '@renderer/utils/Storage'
+import { useStorageContext } from '@renderer/hooks/Storage'
 import type { Component } from 'solid-js'
 
 const AuthCallback: Component = () => {
   const pathName = window.location.hash.replace('#access_token=', '')?.replace(/&.*/, '')
+  const { setStore } = useStorageContext()
 
-  STORAGE.set('AnilistToken', pathName)
-  STORAGE.set('Logged', true)
+  setStore('AnilistToken', pathName)
+  setStore('Logged', true)
 
   window.open('/', '_self')
 
