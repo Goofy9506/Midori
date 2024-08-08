@@ -197,7 +197,7 @@ const Episodes: Component<props> = (props) => {
                   <div class="content">
                     <div class="episode-title">
                       {episode + 1}.{' '}
-                      {props.mediaInfo?.episodes?.[episode]?.title || 'Episode ' + `${episode + 1}`}
+                      {props.mediaInfo?.episodes?.[episode]?.title ?? 'Episode ' + `${episode + 1}`}
                     </div>
                     <div class="summary">{props.mediaInfo?.episodes?.[episode]?.desc}</div>
                     <div class="tiny-details">
