@@ -460,9 +460,6 @@ export default class AnimeHandler {
       document.body.style.cursor = 'default'
     }
     const autoUpdate = await STORAGE.getAutoUpdate()
-    if (autoUpdate === undefined) {
-      STORAGE.set('AutoUpdate', false)
-    }
     if (autoUpdate === true) {
       this.saveToAnilist()
     }
@@ -529,8 +526,8 @@ export default class AnimeHandler {
       : this.animeInfo.episodes
     if (Number(episodeNumber()) === Number(episodeInfo)) return
     if (arithmetic === 1 && autoUpdate === true) this.saveToAnilist()
-    setEpisodeNumber(Number(episodeNumber()) + Number(arithmetic))
     this.epNumb = Number(this.epNumb) + Number(arithmetic)
+    setEpisodeNumber(this.epNumb)
     this.loadVideoSource()
   }
 
