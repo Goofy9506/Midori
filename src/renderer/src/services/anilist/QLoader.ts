@@ -202,7 +202,8 @@ export class QLoader {
             id: id,
             type: type
           }
-        })
+        }),
+        headers: this.TOKEN ? { Authorization: 'Bearer ' + this.TOKEN } : {}
       })
       return response.data.data.Media
     } catch (error) {
@@ -218,7 +219,8 @@ export class QLoader {
           variables: {
             id: id
           }
-        })
+        }),
+        headers: this.TOKEN ? { Authorization: 'Bearer ' + this.TOKEN } : {}
       })
       return response.data.data.Media.relations
     } catch (error) {
