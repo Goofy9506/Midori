@@ -1,5 +1,10 @@
 import { createEffect, createSignal, type Component } from 'solid-js'
-import { RiBuildingsHome2Fill, RiMediaClapperboardFill, RiSystemSettings3Fill, RiUserFacesUser3Fill } from 'solid-icons/ri'
+import {
+  RiBuildingsHome2Fill,
+  RiMediaClapperboardFill,
+  RiSystemSettings3Fill,
+  RiUserFacesUser3Fill
+} from 'solid-icons/ri'
 
 import { A, useLocation } from '@solidjs/router'
 import { useStorageContext } from '@renderer/hooks/Storage'
