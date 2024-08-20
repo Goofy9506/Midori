@@ -114,7 +114,7 @@ export default class Zoro {
     }
   }
 
-  public videoSourceList = async (epUrl: string, serverUrl: string = 'vidstreaming') => {
+  public videoSourceList = async (epUrl: string, serverUrl: string = 'vidcloud') => {
     const subOrDub: 'sub' | 'dub' = epUrl.endsWith('$dub') ? 'dub' : 'sub'
     const newUrl = `${this.baseUrl}/watch/${epUrl.replace('$episode$', '?ep=').replace(/\$both|\$sub|\$dub/gi, '')}`
 
