@@ -361,6 +361,7 @@ const Player: Component<PlayerProps> = (props) => {
           ref={video}
           onEnded={() => Handler.videoEnded(props.onClose)}
           onTimeUpdate={Handler.videoTimeUpdate}
+          autoplay
         >
           <track ref={track} default data-type="vtt" class="subtitles" />
         </video>
