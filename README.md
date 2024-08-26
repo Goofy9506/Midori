@@ -168,9 +168,12 @@
 </div>
 
 <div>
-Midori helps users find anime by scraping links from various websites. Midori and its developers do not host the content found on the app. All images and anime information are retrieved from the AniList public API. Additionally, all anime links found in Midori are from various third-party anime hosting websites.
+    <h2>Disclaimer</h2>
+    <p>
+      Midori helps users find anime by scraping links from various websites. Midori and its developers do not host the content found on the app. All images and anime information are retrieved from the AniList public API. Additionally, all anime links found in Midori are from various third-party anime hosting websites.
 
 Midori and its owner are not responsible for the misuse of any content within or outside the app and disclaim any responsibility for the dissemination of content within the app. By using this app, you agree that the app developer is not responsible for the content within the app, which may or may not come from legitimate sources.
 
 For issues related to internet violations, please contact the source website directly. The developer is not legally responsible.
+    </p>
 </div>
