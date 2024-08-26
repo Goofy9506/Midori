@@ -25,6 +25,7 @@ const App: Component = (props: ComponentProps<'div'>) => {
   createEffect(() => {
     // Gets the user's data && sets the avatar && sets the color theme
     ;(async () => {
+      if (ColorTheme === undefined) STORAGE.set('ColorTheme', 'green')
       getColorTheme(await ColorTheme)
 
       if (await STORAGE.getLogged()) {

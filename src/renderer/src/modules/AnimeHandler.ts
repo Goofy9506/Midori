@@ -278,20 +278,7 @@ export default class AnimeHandler {
           if (currentSource) {
             return currentSource
           }
-        } //else {
-        //   episodeId = animeData.episodes[episodeNumber() - 1].id.replace(/\$both/, `$sub`)
-        //   const source2 = await zoro.videoSourceList(episodeId)
-        //   if (source2) {
-        //     new Notify().Alert('dub was not found, loading sub instead...')
-        //     const currentSource = source2.sources[0].url
-        //     if (episodeId.includes('$sub')) {
-        //       this.getSubtitles(source2.subtitles)
-        //     }
-        //     if (currentSource) {
-        //       return currentSource
-        //     }
-        //   }
-        // }
+        }
       }
     }
   }
