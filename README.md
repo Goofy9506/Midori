@@ -79,8 +79,6 @@
           <summary><a href="#more-information">More Information</a></summary>
           <ul>
             <li><a href="#support">Support</a></li>
-            <li><a href="#credits">Credits</a></li>
-            <li><a href="#Contributing">Contributing</a></li>
           </ul>
         </details>
       </li>
