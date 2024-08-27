@@ -244,7 +244,7 @@ const Player: Component<PlayerProps> = (props) => {
               </span>
             </div>
           </div>
-          <div class="lower-controls">
+          <div class="bottom-controls">
             <div class="inner-controls">
               <div class="player-time">{videoTime()}</div>
               <div class="skip" ref={skipIntro} onClick={Handler.skipIntro}>
@@ -359,6 +359,7 @@ const Player: Component<PlayerProps> = (props) => {
           id="midori-player"
           crossOrigin="anonymous"
           ref={video}
+          class={`${showed() ? 'showed' : ''}`}
           onEnded={() => Handler.videoEnded(props.onClose)}
           onTimeUpdate={Handler.videoTimeUpdate}
           autoplay

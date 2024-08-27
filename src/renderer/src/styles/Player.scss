@@ -24,9 +24,8 @@
 
     &::cue {
       opacity: 1;
-      font-size: 42px;
+      font-size: 80%;
       background-color: transparent;
-      -webkit-text-stroke: 3px black;
     }
 
     &::-webkit-media-text-track-container {
@@ -34,15 +33,22 @@
       font-weight: 700;
       position: absolute;
       overflow: visible !important;
+      transition: 0.2s ease-in-out;
       font-family: 'Poppins', sans-serif;
       -webkit-text-stroke: 1.5px black;
-      -webkit-transform: translateY(-5%) !important;
+      -webkit-transform: translateY(-6%) !important;
+    }
+
+    &.showed {
+      &::-webkit-media-text-track-container {
+        -webkit-transform: translateY(-10%) !important;
+      }
     }
   }
 
   .controls {
-    opacity: 0;
-    display: none;
+    opacity: 1;
+    display: block;
     z-index: 90;
     width: 100%;
     cursor: none;
@@ -53,12 +59,6 @@
     transition: 0.2s ease-in-out;
     background-color: #0000008a;
 
-    &.showed {
-      opacity: 100;
-      display: block;
-      cursor: default;
-    }
-
     .inner-controls {
       width: 100%;
       height: 100%;
@@ -66,11 +66,12 @@
     }
 
     .top-controls {
-      top: 0px;
+      top: -100px;
       width: 100%;
       margin-top: 10px;
       position: absolute;
       height: fit-content;
+      transition: 0.2s ease-in-out;
 
       .exit {
         float: left;
@@ -92,12 +93,14 @@
 
     .mid-controls {
       top: 50%;
+      opacity: 0;
       width: 100%;
       position: absolute;
       height: fit-content;
       align-items: center;
       justify-content: center;
       transform: translate(0, -50%);
+      transition: 0.2s ease-in-out;
 
       .inner-controls {
         gap: 5%;
@@ -113,12 +116,13 @@
       }
     }
 
-    .lower-controls {
-      bottom: 5px;
+    .bottom-controls {
+      bottom: -100px;
       padding: 0px 20px;
       position: absolute;
       height: fit-content;
       width: calc(100% - 40px);
+      transition: 0.2s ease-in-out;
 
       .hover-time {
         font-size: 16px;
@@ -250,6 +254,24 @@
             transform: translate(-50%);
           }
         }
+      }
+    }
+
+    &.showed {
+      opacity: 1;
+      display: block;
+      cursor: default;
+
+      .top-controls {
+        top: 0px;
+      }
+
+      .mid-controls {
+        opacity: 1;
+      }
+
+      .bottom-controls {
+        bottom: 5px;
       }
     }
   }
