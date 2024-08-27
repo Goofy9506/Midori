@@ -48,7 +48,15 @@ const EntryWrapper: Component<Props> = (props: { list; title }) => {
         <div class="list-wrapper" ref={listWrapperRef}>
           <div class="list" ref={listRef}>
             {props.list?.length > 0 && (
-              <>{<For each={props.list}>{(entryData: any) => <Entry media={entryData} />}</For>}</>
+              <>
+                {
+                  <For each={props.list}>
+                    {(entryData: any) => (
+                      <Entry media={entryData.data ? entryData.data : entryData} />
+                    )}
+                  </For>
+                }
+              </>
             )}
           </div>
         </div>
