@@ -121,6 +121,14 @@ export default class AnimeHandler {
       (item) => item.media === this.animeInfo.name && item.episode === episodeNumber()
     )
 
+    const previous = episodeData?.find(
+      (item) => item.media === this.animeInfo.name && item.episode === episodeNumber() - 1
+    )
+
+    if (previous) {
+      episodeData.slice(episodeData.indexOf(previous))
+    }
+
     if (video.currentTime === episodeData[existingEpisodeIndex]?.time) return
 
     if (existingEpisodeIndex !== -1) {
@@ -135,7 +143,8 @@ export default class AnimeHandler {
         episode: episodeNumber(),
         time: video.currentTime,
         timeUpdated: Date.now(),
-        timeCreated: Date.now()
+        timeCreated: Date.now(),
+        data: this.minifyData(this.animeInfo, episodeNumber())
       })
     }
 
@@ -149,6 +158,21 @@ export default class AnimeHandler {
     }
 
     STORAGE.set('EpisodeProgress', episodeData)
+  }
+
+  private minifyData = (data: any, clientProgress: number) => {
+    const newData = {
+      id: data.id,
+      idMal: data.idMal,
+      name: data.name,
+      nameRomaji: data.nameRomaji,
+      cover: data.cover,
+      userProgress: clientProgress,
+      totalEpisodes: data.totalEpisodes,
+      meanScore: data.meanScore,
+      status: data.status
+    }
+    return newData
   }
 
   /**
@@ -421,6 +445,7 @@ export default class AnimeHandler {
       interval = setInterval(() => {
         this.saveVideoProgress()
       }, 30000)
+      if (video?.autoplay) this.playVideoSource()
     })
     video.volume = volume
   }

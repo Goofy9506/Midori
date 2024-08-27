@@ -4,4 +4,5 @@ export type EpisodeProgressType = {
   time: number
   timeUpdated: number
   timeCreated: number
+  data: any
 }
