@@ -23,6 +23,8 @@ const Anime: Component = () => {
   const [updatePopular, setUpdatePopular] = createSignal<any>(null)
   const [currentTitle, setCurrentTitle] = createSignal<string>('')
   const [searchedContent, setSearched] = createSignal<any>()
+
+  let timer: NodeJS.Timeout
   const ALoad = new ALoader()
   const QLoad = new QLoader()
 
@@ -122,6 +124,17 @@ const Anime: Component = () => {
     setUpdatePopular(mediaArray)
   })
 
+  const inputChange = (
+    e: InputEvent & {
+      currentTarget: HTMLInputElement
+      target: HTMLInputElement
+    }
+  ) => {
+    setCurrentTitle(e.target.value)
+    clearTimeout(timer)
+    timer = setTimeout(() => [handleSearch()], 2500)
+  }
+
   return (
     <>
       <div class="body">
@@ -131,9 +144,7 @@ const Anime: Component = () => {
               type="text"
               placeholder="Search Anime..."
               class="search-bar"
-              onInput={(e) => {
-                setCurrentTitle(e.target.value)
-              }}
+              onInput={inputChange}
             />
             {currentTitle() === '' && !searchedContent() ? (
               <div class="central">
