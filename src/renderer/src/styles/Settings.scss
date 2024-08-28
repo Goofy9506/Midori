@@ -9,12 +9,22 @@
     flex-direction: column;
     height: calc(100% - 45px);
 
+    .group {
+
+      h1 {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--font-color-2);
+      }
+
+    }
+
     .sections {
       cursor: pointer;
       font-size: 18px;
       text-align: left;
-      padding: 7px 15px;
-      border-radius: 6px;
+      padding: 3px 15px;
+      border-radius: 2px;
       color: var(--font-color-2);
 
       &.active {

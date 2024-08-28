@@ -50,17 +50,20 @@ const Settings: Component = () => {
         <div class="main">
           <div class="settings">
             <div class="left">
-              <div
-                class={`sections ${settings() === 'player' ? 'active' : ''}`}
-                onClick={() => setSettings('player')}
-              >
-                Player
-              </div>
-              <div
-                class={`sections ${settings() === 'interface' ? 'active' : ''}`}
-                onClick={() => setSettings('interface')}
-              >
-                Interface
+              <div class="group">
+                <h1 class="group-title">General</h1>
+                <div
+                  class={`sections ${settings() === 'player' ? 'active' : ''}`}
+                  onClick={() => setSettings('player')}
+                >
+                  Player
+                </div>
+                <div
+                  class={`sections ${settings() === 'interface' ? 'active' : ''}`}
+                  onClick={() => setSettings('interface')}
+                >
+                  Interface
+                </div>
               </div>
               <div
                 class="clear-progress"
@@ -71,16 +74,18 @@ const Settings: Component = () => {
               >
                 Clear Watch Progress
               </div>
-              <div
-                class="log-out"
-                onClick={() => {
-                  setStore('Logged', false)
-                  setStore('AnilistToken', '')
-                  new Notify().Alert('You have successfully logged out!')
-                }}
-              >
-                Logout
-              </div>
+              {logged() ? (
+                <div
+                  class="log-out"
+                  onClick={() => {
+                    setStore('Logged', false)
+                    setStore('AnilistToken', '')
+                    new Notify().Alert('You have successfully logged out!')
+                  }}
+                >
+                  Logout
+                </div>
+              ) : undefined}
             </div>
             <div class="right">
               {settings() === 'player' && (
