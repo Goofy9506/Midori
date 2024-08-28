@@ -118,11 +118,11 @@ export default class AnimeHandler {
     }
 
     const existingEpisodeIndex = episodeData.findIndex(
-      (item) => item.media === this.animeInfo.name && item.episode === episodeNumber()
+      (item) => item.media === this.animeInfo.name && item.episode === this.epNumb
     )
 
     const previous = episodeData?.find(
-      (item) => item.media === this.animeInfo.name && item.episode === episodeNumber() - 1
+      (item) => item.media === this.animeInfo.name && item.episode === this.epNumb - 1
     )
 
     if (previous) {
@@ -140,11 +140,11 @@ export default class AnimeHandler {
     } else {
       episodeData.push({
         media: this.animeInfo.name,
-        episode: episodeNumber(),
+        episode: this.epNumb,
         time: video.currentTime,
         timeUpdated: Date.now(),
         timeCreated: Date.now(),
-        data: this.minifyData(this.animeInfo, episodeNumber())
+        data: this.minifyData(this.animeInfo, this.epNumb)
       })
     }
 
