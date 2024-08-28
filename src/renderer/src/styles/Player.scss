@@ -35,20 +35,20 @@
       overflow: visible !important;
       transition: 0.2s ease-in-out;
       font-family: 'Poppins', sans-serif;
-      -webkit-text-stroke: 1.5px black;
-      -webkit-transform: translateY(-6%) !important;
+      -webkit-text-stroke: 1px black;
+      -webkit-transform: translateY(-1%) !important;
     }
 
     &.showed {
       &::-webkit-media-text-track-container {
-        -webkit-transform: translateY(-10%) !important;
+        -webkit-transform: translateY(-5%) !important;
       }
     }
   }
 
   .controls {
-    opacity: 1;
-    display: block;
+    opacity: 0;
+    display: none;
     z-index: 90;
     width: 100%;
     cursor: none;
